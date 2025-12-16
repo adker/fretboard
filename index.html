@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>fretboard</title>
 
   <style>
@@ -394,6 +395,137 @@
     .note.open.color-5 { background: #fff; color: #111; border-color: rgba(60,150,220,0.9); }
     .note.open.color-6 { background: #fff; color: #111; border-color: rgba(0,0,0,0.9); }
 
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px 10px;
+        overflow-x: hidden;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+      }
+
+      #export-area {
+        overflow-x: auto;
+        overflow-y: visible;
+        max-width: 100%;
+        display: block;
+      }
+
+      #export-padding {
+        padding: 20px;
+        width: fit-content;
+        min-width: max-content;
+      }
+
+      .fretboard {
+        /* Keep natural size, don't shrink */
+        min-width: max-content;
+      }
+
+      /* Make controls stack vertically on mobile */
+      .controls-container {
+        flex-direction: column !important;
+        align-items: stretch !important;
+      }
+
+      .controls-container > div {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-bottom: 12px;
+      }
+
+      /* Button adjustments for touch */
+      button {
+        padding: 14px 20px;
+        font-size: 16px;
+        min-height: 44px;
+        margin-bottom: 8px;
+      }
+
+      .fill-buttons {
+        flex-direction: column;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+      }
+
+      .fill-buttons button {
+        width: 100%;
+        margin-right: 0;
+      }
+
+      /* Color palette adjustments */
+      .color-palette {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .color-palette-swatches {
+        justify-content: space-around;
+      }
+
+      .color-swatch {
+        width: 40px;
+        height: 40px;
+      }
+
+      /* Input adjustments */
+      input[type="number"],
+      input[type="text"] {
+        font-size: 16px !important;
+        min-height: 44px;
+      }
+
+      input[type="range"] {
+        width: 100% !important;
+      }
+
+      /* Checkbox and radio adjustments */
+      input[type="checkbox"],
+      input[type="radio"] {
+        width: 20px !important;
+        height: 20px !important;
+      }
+
+      /* Instructions box */
+      .instructions-box {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px 5px;
+        overflow-x: hidden;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      #export-area {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      #export-padding {
+        padding: 10px;
+      }
+
+      .color-swatch {
+        width: 36px;
+        height: 36px;
+      }
+
+      button {
+        font-size: 15px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -416,7 +548,7 @@
 
 
 <div style="margin-top: 30px; background: white; padding: 24px; border-radius: var(--border-radius); box-shadow: var(--shadow-lg);">
-  <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+  <div class="controls-container" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
     <div>
       <button id="clear">Clear</button>
       <button id="export-png">Exporter PNG</button>
@@ -492,11 +624,11 @@
   </div>
 </div>
 
-<div style="margin-top: 24px; padding: 20px 24px; background: white; border-radius: var(--border-radius); box-shadow: var(--shadow-md); border-left: 4px solid var(--primary-color);">
+<div class="instructions-box" style="margin-top: 24px; padding: 20px 24px; background: white; border-radius: var(--border-radius); box-shadow: var(--shadow-md); border-left: 4px solid var(--primary-color);">
   <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #4b5563;">
     <strong style="color: #1f2937;">Instructions:</strong><br>
     • <strong>Click</strong> on a cell to add or remove a note<br>
-    • <strong>Ctrl + Click</strong> to select a note
+    • <strong>Ctrl + Click</strong> (or <strong>long press</strong> on mobile) to select a note
   </p>
 </div>  
 
@@ -717,8 +849,45 @@
           note.style.top = `${yForString(string)}px`;
         }
 
+        // Long press support for mobile selection
+        let longPressTimer = null;
+        let isLongPress = false;
+
+        note.addEventListener("touchstart", (e) => {
+          isLongPress = false;
+          longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            // Long press = toggle selection
+            setSelectedNoteDOM(note.dataset.key);
+            // Haptic feedback if available
+            if (navigator.vibrate) navigator.vibrate(50);
+          }, 500);
+        });
+
+        note.addEventListener("touchend", (e) => {
+          if (longPressTimer) clearTimeout(longPressTimer);
+          if (isLongPress) {
+            e.preventDefault();
+            e.stopPropagation();
+            isLongPress = false;
+            return;
+          }
+        });
+
+        note.addEventListener("touchcancel", (e) => {
+          if (longPressTimer) clearTimeout(longPressTimer);
+          isLongPress = false;
+        });
+
         note.addEventListener("click", (e) => {
           e.stopPropagation();
+          
+          // Prevent click after long press
+          if (isLongPress) {
+            isLongPress = false;
+            return;
+          }
+
           // Ctrl+click toggles selection only (do not unclick)
           if (e.ctrlKey) {
             // Only allow selection on actually clicked/filled notes
@@ -787,6 +956,7 @@
             note.style.top = `${yForString(string)}px`;
           }
 
+          // Grey notes - only handle click (no selection needed)
           note.addEventListener("click", (e) => {
             e.stopPropagation();
             // Ctrl+click on grey does nothing (selection only for clicked/filled notes)
@@ -846,6 +1016,7 @@
               note.style.top = `${yForString(string)}px`;
             }
 
+            // All-notes display - only handle click (no selection needed)
             note.addEventListener("click", (e) => {
               e.stopPropagation();
               if (e.ctrlKey) return;
