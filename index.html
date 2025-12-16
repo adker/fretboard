@@ -2,13 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Manche de guitare</title>
+  <title>fretboard</title>
 
   <style>
     :root {
-      --fret-width: 60px;
-      --string-gap: 36px;
-      --double-marker-gap: 12px;
+      --fret-width: 90px;
+      --string-gap: 54px;
+      --double-marker-gap: 18px;
+      --size-scale: 1;
       --primary-color: #6366f1;
       --primary-hover: #4f46e5;
       --primary-active: #4338ca;
@@ -76,9 +77,9 @@
     .fretboard {
       position: relative;
       display: grid;
-      grid-template-columns: repeat(12, var(--fret-width));
-      grid-template-rows: repeat(6, var(--string-gap));
-      border-left: 6px solid #1f2937;
+      grid-template-columns: repeat(12, calc(var(--fret-width) * var(--size-scale)));
+      grid-template-rows: repeat(6, calc(var(--string-gap) * var(--size-scale)));
+      border-left: calc(6px * var(--size-scale)) solid #1f2937;
       background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
       border-radius: 4px;
     }
@@ -104,8 +105,8 @@
     /* Repères de touche */
     .marker {
       position: absolute;
-      width: 10px;
-      height: 10px;
+      width: calc(15px * var(--size-scale));
+      height: calc(15px * var(--size-scale));
       background: #d0d0d0;
       border-radius: 50%;
       transform: translate(-50%, -50%);
@@ -115,8 +116,8 @@
     /* Notes */
 .note {
   position: absolute;
-  width: 26px;
-  height: 26px;
+  width: calc(39px * var(--size-scale));
+  height: calc(39px * var(--size-scale));
   border-radius: 50%;
   transform: translate(-50%, -50%);
   cursor: pointer;
@@ -125,23 +126,23 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 12px;
+  font-size: calc(18px * var(--size-scale));
   font-weight: 600;
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
   box-shadow: 0 6px 18px rgba(0,0,0,0.18);
   background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.08));
-  border: 2px solid rgba(255,255,255,0.12);
+  border: calc(3px * var(--size-scale)) solid rgba(255,255,255,0.12);
 }
 
 
     /* Hover indicator (shadowy circle under mouse) */
     .hover-indicator {
       position: absolute;
-      width: 22px;
-      height: 22px;
+      width: calc(33px * var(--size-scale));
+      height: calc(33px * var(--size-scale));
       border-radius: 50%;
       background: rgba(27, 27, 27, 0.12);
-      border: 2px solid rgba(38, 38, 38, 0.22);
+      border: calc(3px * var(--size-scale)) solid rgba(38, 38, 38, 0.22);
       transform: translate(-50%, -50%);
       pointer-events: none;
       transition: left 0.06s linear, top 0.06s linear, opacity 0.12s;
@@ -164,9 +165,9 @@
     /* Fondamentale */
 .note.root {
   background: linear-gradient(180deg, #111111, #000000);
-  border: 1px solid  rgba(0,0,0,0.32);
-  width: 26px;
-  height: 26px;
+  border: calc(1.5px * var(--size-scale)) solid  rgba(0,0,0,0.32);
+  width: calc(39px * var(--size-scale));
+  height: calc(39px * var(--size-scale));
   box-shadow: 0 8px 24px rgba(0,0,0,0.32), inset 0 2px 6px rgba(255,255,255,0.04);
 }
     /* Grey notes */
@@ -190,9 +191,9 @@
     /* Zone corde à vide */
     .open-string {
       position: absolute;
-      left: -24px;  /* à gauche du sillet */
-      width: 24px;
-      height: 22px;
+      left: calc(-22px * var(--size-scale));  /* centered around the open note position */
+      width: calc(36px * var(--size-scale));
+      height: calc(33px * var(--size-scale));
       transform: translateY(-50%);
       cursor: pointer;
       z-index: 5;
@@ -202,9 +203,20 @@
 .note.open {
   background: #fff;
   color: #111;
-  border-width: 3px;
+  border-width: calc(4.5px * var(--size-scale));
   border-style: solid;
   box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+}
+
+/* White disc for showing all note names */
+.note.all-notes-display {
+  background: #fff;
+  color: #111;
+  border: calc(2px * var(--size-scale)) solid #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-weight: 600;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 /* Open string follows note type color */
@@ -272,8 +284,7 @@
 
     /* Fill buttons grid */
     .fill-buttons {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
       gap: 8px;
       width: fit-content;
       margin-left: 20px;
@@ -305,11 +316,11 @@
       z-index: 20;
     }
 
-    /* Give the Fill selected / Unfill selected buttons the same highlight shadow */
-    #fill-selected, #unfill-selected {
+    /* Give the Fill selected button the same highlight shadow */
+    #fill-selected-toggle {
       box-shadow: 0 10px 30px rgba(30,130,255,0.12), 0 0 8px rgba(30,130,255,0.5);
     }
-    #fill-selected:hover, #unfill-selected:hover {
+    #fill-selected-toggle:hover {
       box-shadow: 0 12px 36px rgba(30,130,255,0.22), 0 0 12px rgba(30,130,255,0.85);
       transform: translateY(-1px);
     }
@@ -317,13 +328,36 @@
     /* Color palette */
     .color-palette {
       display: flex;
-      gap: 10px;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
       margin-left: 12px;
       padding: 8px 12px;
       background: white;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-md);
+    }
+    
+    .color-palette-swatches {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    /* Floating color palette */
+    #floating-color-palette {
+      position: fixed;
+      display: none;
+      gap: 10px;
+      padding: 12px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 1000;
+      pointer-events: auto;
+    }
+    
+    #floating-color-palette.visible {
+      display: flex;
     }
     .color-swatch {
       width: 32px;
@@ -350,6 +384,7 @@
     .note.color-3 { background: linear-gradient(180deg,#6bff9e,#2fc86d); border-color: rgba(40,180,100,0.9); }
     .note.color-4 { background: linear-gradient(180deg,#ffd36b,#ffb84d); border-color: rgba(220,150,40,0.9); }
     .note.color-5 { background: linear-gradient(180deg,#6bc8ff,#3da8ff); border-color: rgba(60,150,220,0.9); }
+    .note.color-6 { background: linear-gradient(180deg,#111111,#000000); border-color: rgba(0,0,0,0.9); }
 
     /* Open-string color variants: keep white background but use the color's border */
     .note.open.color-1 { background: #fff; color: #111; border-color: rgba(106,80,255,0.85); }
@@ -357,6 +392,7 @@
     .note.open.color-3 { background: #fff; color: #111; border-color: rgba(40,180,100,0.9); }
     .note.open.color-4 { background: #fff; color: #111; border-color: rgba(220,150,40,0.9); }
     .note.open.color-5 { background: #fff; color: #111; border-color: rgba(60,150,220,0.9); }
+    .note.open.color-6 { background: #fff; color: #111; border-color: rgba(0,0,0,0.9); }
 
   </style>
 </head>
@@ -368,6 +404,16 @@
   </div>
 </div>
 
+<!-- Floating color palette -->
+<div id="floating-color-palette">
+  <div class="color-swatch" data-color="color-1" style="background: linear-gradient(180deg,#7a6cff,#5a49e6)"></div>
+  <div class="color-swatch" data-color="color-2" style="background: linear-gradient(180deg,#ff6b6b,#e04444)"></div>
+  <div class="color-swatch" data-color="color-3" style="background: linear-gradient(180deg,#6bff9e,#2fc86d)"></div>
+  <div class="color-swatch" data-color="color-4" style="background: linear-gradient(180deg,#ffd36b,#ffb84d)"></div>
+  <div class="color-swatch" data-color="color-5" style="background: linear-gradient(180deg,#6bc8ff,#3da8ff)"></div>
+  <div class="color-swatch" data-color="color-6" style="background: linear-gradient(180deg,#111111,#000000)"></div>
+</div>
+
 
 <div style="margin-top: 30px; background: white; padding: 24px; border-radius: var(--border-radius); box-shadow: var(--shadow-lg);">
   <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
@@ -377,19 +423,56 @@
       <button id="export-svg">Exporter SVG - not yet</button>
     </div>
     <div class="fill-buttons">
-      <button id="fill">Fill</button>
-      <button id="fill-grey" class="grey-btn">Fill in grey</button>
-      <button id="fill-selected">Fill selected</button>
-      <button id="unfill-all">Unfill all</button>
-      <button id="unfill-grey" class="grey-btn">Unfill grey</button>
-      <button id="unfill-selected">Unfill selected</button>
+      <button id="fill-toggle">Fill / Unfill all (f)</button>
+      <button id="fill-grey-toggle" class="grey-btn">Fill / Unfill grey (g)</button>
+      <button id="fill-selected-toggle">Fill / Unfill selected (s)</button>
     </div>
     <div class="color-palette" aria-label="Color palette">
-      <div class="color-swatch selected" data-color="color-1" style="background: linear-gradient(180deg,#7a6cff,#5a49e6)"></div>
-      <div class="color-swatch" data-color="color-2" style="background: linear-gradient(180deg,#ff6b6b,#e04444)"></div>
-      <div class="color-swatch" data-color="color-3" style="background: linear-gradient(180deg,#6bff9e,#2fc86d)"></div>
-      <div class="color-swatch" data-color="color-4" style="background: linear-gradient(180deg,#ffd36b,#ffb84d)"></div>
-      <div class="color-swatch" data-color="color-5" style="background: linear-gradient(180deg,#6bc8ff,#3da8ff)"></div>
+      <label style="font-weight: 600; color: #374151;">Next note color (c):</label>
+      <div class="color-palette-swatches">
+        <div class="color-swatch selected" data-color="color-1" style="background: linear-gradient(180deg,#7a6cff,#5a49e6)"></div>
+        <div class="color-swatch" data-color="color-2" style="background: linear-gradient(180deg,#ff6b6b,#e04444)"></div>
+        <div class="color-swatch" data-color="color-3" style="background: linear-gradient(180deg,#6bff9e,#2fc86d)"></div>
+        <div class="color-swatch" data-color="color-4" style="background: linear-gradient(180deg,#ffd36b,#ffb84d)"></div>
+        <div class="color-swatch" data-color="color-5" style="background: linear-gradient(180deg,#6bc8ff,#3da8ff)"></div>
+        <div class="color-swatch" data-color="color-6" style="background: linear-gradient(180deg,#111111,#000000)"></div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 8px 12px; background: white; border-radius: var(--border-radius); box-shadow: var(--shadow-md);">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: #374151;">
+        <input type="checkbox" id="show-notes" style="width: 18px; height: 18px; cursor: pointer;">
+        Show notes
+      </label>
+      <div style="display: flex; gap: 16px; margin-left: 26px;">
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="display-mode" id="display-notes" value="notes" checked style="width: 16px; height: 16px; cursor: pointer;">
+          Notes
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="display-mode" id="display-function" value="function" style="width: 16px; height: 16px; cursor: pointer;">
+          Function
+        </label>
+      </div>
+      <div style="display: flex; gap: 16px; margin-left: 26px;">
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="display-scope" id="display-selected" value="selected" checked style="width: 16px; height: 16px; cursor: pointer;">
+          Selected only
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="display-scope" id="display-all" value="all" style="width: 16px; height: 16px; cursor: pointer;">
+          All
+        </label>
+      </div>
+      <div style="display: flex; gap: 16px; margin-top: 4px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="note-notation" id="use-sharps" value="sharps" checked style="width: 16px; height: 16px; cursor: pointer;">
+          Sharps (#)
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="note-notation" id="use-flats" value="flats" style="width: 16px; height: 16px; cursor: pointer;">
+          Flats (♭)
+        </label>
+      </div>
     </div>
     <div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
       <label for="left-end" style="font-weight: 600; color: #374151;">Left end:</label>
@@ -401,6 +484,11 @@
       <label style="font-weight: 600; color: #374151;">File name:</label>
       <input type="text" id="title" value="fretboard" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; min-width: 200px;">
     </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
+      <label for="size-slider" style="font-weight: 600; color: #374151;">Size (+/-):</label>
+      <input type="range" id="size-slider" min="0.8" max="1.3" step="0.05" value="1" style="width: 120px; cursor: pointer;">
+      <span id="size-value" style="font-weight: 600; color: #374151; min-width: 40px;">1.0x</span>
+    </div>
   </div>
 </div>
 
@@ -408,7 +496,6 @@
   <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #4b5563;">
     <strong style="color: #1f2937;">Instructions:</strong><br>
     • <strong>Click</strong> on a cell to add or remove a note<br>
-    • <strong>Shift + Click</strong> for a special note (e.g., root)<br>
     • <strong>Ctrl + Click</strong> to select a note
   </p>
 </div>  
@@ -425,8 +512,38 @@
     return ((OPEN_NOTES[string] + fret - 1) % 12) + 1;
   }
 
-  const fretWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fret-width'));
-  const stringGap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--string-gap'));
+  const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const NOTE_NAMES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+  const INTERVAL_NAMES = ['R', '2m', '2M', '3m', '3M', '4', '4+', '5', '6m', '6M', '7m', '7M'];
+  
+  window.useSharps = true; // Default to sharps
+  
+  function getNoteName(noteNumber) {
+    const names = window.useSharps ? NOTE_NAMES : NOTE_NAMES_FLAT;
+    return names[(noteNumber - 1) % 12];
+  }
+
+  function getInterval(fromNote, toNote) {
+    // Calculate interval: distance from fromNote to toNote
+    const interval = ((toNote - fromNote) % 12 + 12) % 12;
+    return INTERVAL_NAMES[interval];
+  }
+
+  window.showNotes = false;
+  window.showFunction = false; // false = notes, true = function (intervals)
+  window.showAll = false; // false = selected only, true = all
+
+  function getFretWidth() {
+    const baseWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fret-width'));
+    const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+    return baseWidth * scale;
+  }
+
+  function getStringGap() {
+    const baseGap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--string-gap'));
+    const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+    return baseGap * scale;
+  }
 
   window.clickedNotes = [];
   window.filledNotes = [];
@@ -464,11 +581,12 @@
   }
 
   function xForFret(fret) {
-    return (fret - window.currentStartFret + 0.5) * fretWidth;
+    return (fret - window.currentStartFret + 0.5) * getFretWidth();
   }
 
   function yForString(stringIndex) {
-    return stringIndex * stringGap + stringGap / 2;
+    const gap = getStringGap();
+    return stringIndex * gap + gap / 2;
   }
 
   function updateFretboard() {
@@ -497,8 +615,9 @@
     });
 
     // Set grid
-    fretboard.style.gridTemplateColumns = `repeat(${numFrets}, var(--fret-width))`;
-    fretboard.style.borderLeft = showOpen ? '6px solid #222' : 'none';
+    fretboard.style.gridTemplateColumns = `repeat(${numFrets}, calc(var(--fret-width) * var(--size-scale)))`;
+    const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+    fretboard.style.borderLeft = showOpen ? `${9 * scale}px solid #222` : 'none';
 
     // Add open strings
     if (showOpen) {
@@ -525,7 +644,7 @@
     }
 
     // Add markers
-    const markerY = 3 * stringGap;
+    const markerY = 3 * getStringGap();
     MARKER_FRETS.forEach(fret => {
       if (fret >= minFret && fret <= maxFret) {
         const marker = document.createElement("div");
@@ -538,8 +657,8 @@
 
     // Double marker
     if (DOUBLE_MARKER_FRET >= minFret && DOUBLE_MARKER_FRET <= maxFret) {
-      const topMarkerY = 2 * stringGap;
-      const bottomMarkerY = 4 * stringGap;
+      const topMarkerY = 2 * getStringGap();
+      const bottomMarkerY = 4 * getStringGap();
       const topMarker = document.createElement("div");
       topMarker.className = "marker";
       topMarker.style.left = `${xForFret(DOUBLE_MARKER_FRET)}px`;
@@ -567,8 +686,24 @@
         if (noteData.color) note.dataset.color = noteData.color;
         note.dataset.key = noteKey(string, fret);
 
+        // Display note name or interval if enabled
+        if (window.showNotes) {
+          const noteNum = getNote(string, fret);
+          if (window.showFunction && window.selectedNoteKey) {
+            // Show interval relative to selected note
+            const selParts = window.selectedNoteKey.split('-');
+            const selString = parseInt(selParts[0].slice(1), 10);
+            const selFret = parseInt(selParts[1].slice(1), 10);
+            const rootNote = getNote(selString, selFret);
+            note.textContent = getInterval(rootNote, noteNum);
+          } else {
+            note.textContent = getNoteName(noteNum);
+          }
+        }
+
         if (fret === 0) {
-          note.style.left = `-3px`;
+          const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+          note.style.left = `${-4.5 * scale}px`;
           note.style.top = `${yForString(string)}px`;
           note.classList.add("open");
           // Use the stored color for this note when available; otherwise fall back to current palette
@@ -628,8 +763,23 @@
           note.dataset.fret = fret;
           note.dataset.key = noteKey(string, fret);
 
+          // Display note name or interval if enabled
+          if (window.showNotes) {
+            const noteNum = getNote(string, fret);
+            if (window.showFunction && window.selectedNoteKey) {
+              const selParts = window.selectedNoteKey.split('-');
+              const selString = parseInt(selParts[0].slice(1), 10);
+              const selFret = parseInt(selParts[1].slice(1), 10);
+              const rootNote = getNote(selString, selFret);
+              note.textContent = getInterval(rootNote, noteNum);
+            } else {
+              note.textContent = getNoteName(noteNum);
+            }
+          }
+
           if (fret === 0) {
-            note.style.left = `-3px`;
+            const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+            note.style.left = `${-4.5 * scale}px`;
             note.style.top = `${yForString(string)}px`;
             note.classList.add("open");
           } else {
@@ -661,15 +811,65 @@
       }
     });
 
+    // Show all notes when enabled - display white discs for unclicked cells
+    if (window.showNotes && window.showAll) {
+      const cellStartFret = showOpen ? 0 : startFret;
+      for (let string = 0; string < STRINGS; string++) {
+        for (let fret = cellStartFret; fret <= endFret; fret++) {
+          // Skip if this position already has a clicked/filled note or grey note
+          const hasClicked = allClicked.some(n => n.string === string && n.fret === fret);
+          const hasGrey = window.greyNotes.some(n => n.string === string && n.fret === fret);
+          if (!hasClicked && !hasGrey) {
+            const note = document.createElement("div");
+            note.className = `note all-notes-display`;
+            note.dataset.string = string;
+            note.dataset.fret = fret;
+            note.dataset.key = noteKey(string, fret);
+            const noteNum = getNote(string, fret);
+            if (window.showFunction && window.selectedNoteKey) {
+              const selParts = window.selectedNoteKey.split('-');
+              const selString = parseInt(selParts[0].slice(1), 10);
+              const selFret = parseInt(selParts[1].slice(1), 10);
+              const rootNote = getNote(selString, selFret);
+              note.textContent = getInterval(rootNote, noteNum);
+            } else {
+              note.textContent = getNoteName(noteNum);
+            }
+
+            if (fret === 0) {
+              const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+              note.style.left = `${-4.5 * scale}px`;
+              note.style.top = `${yForString(string)}px`;
+              note.classList.add("open");
+            } else {
+              note.style.left = `${xForFret(fret)}px`;
+              note.style.top = `${yForString(string)}px`;
+            }
+
+            note.addEventListener("click", (e) => {
+              e.stopPropagation();
+              if (e.ctrlKey) return;
+              // Add to clicked
+              window.clickedNotes.push({string, fret, type: 'normal', color: window.currentNoteColor});
+              updateFretboard();
+            });
+
+            fretboard.appendChild(note);
+          }
+        }
+      }
+    }
+
     // Add fret number label if not showing open
     if (!showOpen) {
       const label = document.createElement('div');
       label.textContent = startFret;
       label.style.position = 'absolute';
-      label.style.top = '-20px';
-      label.style.left = `${0.5 * fretWidth}px`;
+      const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+      label.style.top = `${-30 * scale}px`;
+      label.style.left = `${0.5 * getFretWidth()}px`;
       label.style.transform = 'translateX(-50%)';
-      label.style.fontSize = '14px';
+      label.style.fontSize = `${21 * scale}px`;
       label.style.fontWeight = 'bold';
       label.style.color = '#222';
       label.style.pointerEvents = 'none';
@@ -685,19 +885,20 @@
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      let stringIndex = Math.floor(y / stringGap);
+      let stringIndex = Math.floor(y / getStringGap());
       stringIndex = Math.max(0, Math.min(STRINGS - 1, stringIndex));
 
       let fret;
-      const openThreshold = fretWidth * 0.25;
+      const openThreshold = getFretWidth() * 0.25;
       if (window.currentShowOpen && x < openThreshold) {
         fret = 0;
       } else {
-        fret = Math.ceil(x / fretWidth) + window.currentStartFret - 1;
+        fret = Math.ceil(x / getFretWidth()) + window.currentStartFret - 1;
         fret = Math.max(window.currentMinFret, Math.min(window.currentMaxFret, fret));
       }
 
-      const left = fret === 0 ? -3 : xForFret(fret);
+      const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+      const left = fret === 0 ? -4.5 * scale : xForFret(fret);
       const top = yForString(stringIndex);
 
       indicator.style.left = `${left}px`;
@@ -744,59 +945,59 @@
   document.getElementById('left-end').value = '0';
   document.getElementById('right-end').value = '12';
 
-  document.getElementById('fill').addEventListener('click', () => {
-    // Build a mapping noteNumber -> color from clicked notes (first occurrence wins)
-    const colorMap = {};
-    window.clickedNotes.forEach(n => {
-      const noteNum = getNote(n.string, n.fret);
-      if (!colorMap[noteNum]) colorMap[noteNum] = n.color || window.currentNoteColor;
-    });
-    // Get unique note numbers from clicked notes
-    const uniqueNotes = Array.from(new Set(window.clickedNotes.map(n => getNote(n.string, n.fret))));
-    // For each unique note, add all positions with that note to filled, preserving color when possible
-    uniqueNotes.forEach(note => {
-      const fillColor = colorMap[note] || window.currentNoteColor;
-      for (let s = 0; s < STRINGS; s++) {
-        for (let f = 0; f <= 12; f++) { // assuming max fret 12
-          if (getNote(s, f) === note) {
-            const exists = window.filledNotes.some(n => n.string === s && n.fret === f);
-            if (!exists) {
-              window.filledNotes.push({string: s, fret: f, type: 'normal', color: fillColor});
+  document.getElementById('fill-toggle').addEventListener('click', () => {
+    // Toggle between fill and unfill-all
+    if (window.filledNotes.length > 0 || window.greyNotes.length > 0) {
+      window.filledNotes = [];
+      window.greyNotes = [];
+    } else {
+      // Build a mapping noteNumber -> color from clicked notes (first occurrence wins)
+      const colorMap = {};
+      window.clickedNotes.forEach(n => {
+        const noteNum = getNote(n.string, n.fret);
+        if (!colorMap[noteNum]) colorMap[noteNum] = n.color || window.currentNoteColor;
+      });
+      // Get unique note numbers from clicked notes
+      const uniqueNotes = Array.from(new Set(window.clickedNotes.map(n => getNote(n.string, n.fret))));
+      // For each unique note, add all positions with that note to filled, preserving color when possible
+      uniqueNotes.forEach(note => {
+        const fillColor = colorMap[note] || window.currentNoteColor;
+        for (let s = 0; s < STRINGS; s++) {
+          for (let f = 0; f <= 12; f++) { // assuming max fret 12
+            if (getNote(s, f) === note) {
+              const exists = window.filledNotes.some(n => n.string === s && n.fret === f);
+              if (!exists) {
+                window.filledNotes.push({string: s, fret: f, type: 'normal', color: fillColor});
+              }
             }
           }
         }
-      }
-    });
+      });
+    }
     updateFretboard();
   });
 
-  document.getElementById('fill-grey').addEventListener('click', () => {
-    // Get unique notes from current clicked notes
-    const uniqueNotes = new Set(window.clickedNotes.map(n => getNote(n.string, n.fret)));
-    // For each unique note, add all positions with that note to grey
-    uniqueNotes.forEach(note => {
-      for (let s = 0; s < STRINGS; s++) {
-        for (let f = 0; f <= 12; f++) { // assuming max fret 12
-          if (getNote(s, f) === note) {
-            const exists = window.greyNotes.some(n => n.string === s && n.fret === f);
-            if (!exists) {
-              window.greyNotes.push({string: s, fret: f});
+  document.getElementById('fill-grey-toggle').addEventListener('click', () => {
+    // Toggle between fill-grey and unfill-grey
+    if (window.greyNotes.length > 0) {
+      window.greyNotes = [];
+    } else {
+      // Get unique notes from current clicked notes
+      const uniqueNotes = new Set(window.clickedNotes.map(n => getNote(n.string, n.fret)));
+      // For each unique note, add all positions with that note to grey
+      uniqueNotes.forEach(note => {
+        for (let s = 0; s < STRINGS; s++) {
+          for (let f = 0; f <= 12; f++) { // assuming max fret 12
+            if (getNote(s, f) === note) {
+              const exists = window.greyNotes.some(n => n.string === s && n.fret === f);
+              if (!exists) {
+                window.greyNotes.push({string: s, fret: f});
+              }
             }
           }
         }
-      }
-    });
-    updateFretboard();
-  });
-
-  document.getElementById('unfill-all').addEventListener('click', () => {
-    window.filledNotes = [];
-    window.greyNotes = [];
-    updateFretboard();
-  });
-
-  document.getElementById('unfill-grey').addEventListener('click', () => {
-    window.greyNotes = [];
+      });
+    }
     updateFretboard();
   });
 
@@ -809,41 +1010,40 @@
     updateFretboard();
   });
 
-  document.getElementById('fill-selected').addEventListener('click', () => {
+  document.getElementById('fill-selected-toggle').addEventListener('click', () => {
     if (!window.selectedNoteKey) return;
     // parse selected key like s{string}-f{fret}
     const parts = window.selectedNoteKey.split('-');
     const s = parseInt(parts[0].slice(1), 10);
     const f = parseInt(parts[1].slice(1), 10);
     const targetNote = getNote(s, f);
-    // determine source color from the selected note if available
-    let sourceColor = window.currentNoteColor;
-    const selClicked = window.clickedNotes.find(n => n.string === s && n.fret === f);
-    if (selClicked && selClicked.color) sourceColor = selClicked.color;
-    const selFilled = window.filledNotes.find(n => n.string === s && n.fret === f);
-    if (!selClicked && selFilled && selFilled.color) sourceColor = selFilled.color;
-    for (let ss = 0; ss < STRINGS; ss++) {
-      for (let ff = 0; ff <= 12; ff++) {
-        if (getNote(ss, ff) === targetNote) {
-          const alreadyClicked = window.clickedNotes.some(n => n.string === ss && n.fret === ff);
-          const alreadyFilled = window.filledNotes.some(n => n.string === ss && n.fret === ff);
-          if (!alreadyClicked && !alreadyFilled) {
-            window.filledNotes.push({string: ss, fret: ff, type: 'normal', color: sourceColor});
+    // Check if selected note is filled
+    const hasFilled = window.filledNotes.some(n => getNote(n.string, n.fret) === targetNote);
+    
+    if (hasFilled) {
+      // Unfill selected
+      window.filledNotes = window.filledNotes.filter(n => getNote(n.string, n.fret) !== targetNote);
+      window.greyNotes = window.greyNotes.filter(n => getNote(n.string, n.fret) !== targetNote);
+    } else {
+      // Fill selected
+      // determine source color from the selected note if available
+      let sourceColor = window.currentNoteColor;
+      const selClicked = window.clickedNotes.find(n => n.string === s && n.fret === f);
+      if (selClicked && selClicked.color) sourceColor = selClicked.color;
+      const selFilled = window.filledNotes.find(n => n.string === s && n.fret === f);
+      if (!selClicked && selFilled && selFilled.color) sourceColor = selFilled.color;
+      for (let ss = 0; ss < STRINGS; ss++) {
+        for (let ff = 0; ff <= 12; ff++) {
+          if (getNote(ss, ff) === targetNote) {
+            const alreadyClicked = window.clickedNotes.some(n => n.string === ss && n.fret === ff);
+            const alreadyFilled = window.filledNotes.some(n => n.string === ss && n.fret === ff);
+            if (!alreadyClicked && !alreadyFilled) {
+              window.filledNotes.push({string: ss, fret: ff, type: 'normal', color: sourceColor});
+            }
           }
         }
       }
     }
-    updateFretboard();
-  });
-
-  document.getElementById('unfill-selected').addEventListener('click', () => {
-    if (!window.selectedNoteKey) return;
-    const parts = window.selectedNoteKey.split('-');
-    const s = parseInt(parts[0].slice(1), 10);
-    const f = parseInt(parts[1].slice(1), 10);
-    const targetNote = getNote(s, f);
-    window.filledNotes = window.filledNotes.filter(n => getNote(n.string, n.fret) !== targetNote);
-    window.greyNotes = window.greyNotes.filter(n => getNote(n.string, n.fret) !== targetNote);
     updateFretboard();
   });
 
@@ -856,6 +1056,205 @@
         s.classList.add('selected');
         window.currentNoteColor = s.dataset.color;
       });
+    });
+  })();
+
+  // Size slider control
+  (function initSizeSlider() {
+    const slider = document.getElementById('size-slider');
+    const valueDisplay = document.getElementById('size-value');
+    if (!slider || !valueDisplay) return;
+
+    slider.addEventListener('input', () => {
+      const scale = parseFloat(slider.value);
+      document.documentElement.style.setProperty('--size-scale', scale);
+      valueDisplay.textContent = `${scale.toFixed(1)}x`;
+      updateFretboard();
+    });
+  })();
+
+  // Note display controls
+  (function initNoteDisplayToggles() {
+    const showNotesCheckbox = document.getElementById('show-notes');
+    const displayNotesRadio = document.getElementById('display-notes');
+    const displayFunctionRadio = document.getElementById('display-function');
+    const displaySelectedRadio = document.getElementById('display-selected');
+    const displayAllRadio = document.getElementById('display-all');
+    
+    if (!showNotesCheckbox || !displayNotesRadio || !displayFunctionRadio || !displaySelectedRadio || !displayAllRadio) return;
+
+    // Force default state on page load
+    showNotesCheckbox.checked = false;
+    displayNotesRadio.checked = true;
+    displaySelectedRadio.checked = true;
+    window.showNotes = false;
+    window.showFunction = false;
+    window.showAll = false;
+
+    showNotesCheckbox.addEventListener('change', () => {
+      window.showNotes = showNotesCheckbox.checked;
+      updateFretboard();
+    });
+
+    displayNotesRadio.addEventListener('change', () => {
+      if (displayNotesRadio.checked) {
+        window.showFunction = false;
+        updateFretboard();
+      }
+    });
+
+    displayFunctionRadio.addEventListener('change', () => {
+      if (displayFunctionRadio.checked) {
+        window.showFunction = true;
+        updateFretboard();
+      }
+    });
+
+    displaySelectedRadio.addEventListener('change', () => {
+      if (displaySelectedRadio.checked) {
+        window.showAll = false;
+        updateFretboard();
+      }
+    });
+
+    displayAllRadio.addEventListener('change', () => {
+      if (displayAllRadio.checked) {
+        window.showAll = true;
+        updateFretboard();
+      }
+    });
+  })();
+
+  // Sharp/flat notation toggle
+  (function initNotationToggle() {
+    const sharpsRadio = document.getElementById('use-sharps');
+    const flatsRadio = document.getElementById('use-flats');
+    if (!sharpsRadio || !flatsRadio) return;
+
+    // Force sharps on page load
+    sharpsRadio.checked = true;
+    flatsRadio.checked = false;
+    window.useSharps = true;
+
+    sharpsRadio.addEventListener('change', () => {
+      if (sharpsRadio.checked) {
+        window.useSharps = true;
+        updateFretboard();
+      }
+    });
+
+    flatsRadio.addEventListener('change', () => {
+      if (flatsRadio.checked) {
+        window.useSharps = false;
+        updateFretboard();
+      }
+    });
+  })();
+
+  // Keyboard shortcuts
+  (function initKeyboardShortcuts() {
+    // Track mouse position globally
+    let mouseX = 0;
+    let mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    document.addEventListener('keydown', (e) => {
+      // Don't trigger shortcuts when typing in text input fields, but allow for checkboxes/radio buttons
+      if (e.target.tagName === 'TEXTAREA' || (e.target.tagName === 'INPUT' && !['checkbox', 'radio'].includes(e.target.type))) return;
+      
+      // Don't interfere with browser shortcuts (Ctrl+F, Ctrl+S, etc.)
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      
+      const key = e.key.toLowerCase();
+      
+      if (key === 'c') {
+        e.preventDefault();
+        // Toggle floating color palette at mouse position
+        const floatingPalette = document.getElementById('floating-color-palette');
+        if (floatingPalette.classList.contains('visible')) {
+          floatingPalette.classList.remove('visible');
+        } else {
+          // Position at mouse location
+          floatingPalette.style.left = `${mouseX + 10}px`;
+          floatingPalette.style.top = `${mouseY + 10}px`;
+          floatingPalette.classList.add('visible');
+        }
+      } else if (key === 'f') {
+        e.preventDefault();
+        document.getElementById('fill-toggle').click();
+      } else if (key === 'g') {
+        e.preventDefault();
+        document.getElementById('fill-grey-toggle').click();
+      } else if (key === 's') {
+        e.preventDefault();
+        if (!window.selectedNoteKey) return;
+        document.getElementById('fill-selected-toggle').click();
+      } else if (key === '+' || key === '=') {
+        e.preventDefault();
+        // Increase size
+        const slider = document.getElementById('size-slider');
+        const valueDisplay = document.getElementById('size-value');
+        if (slider && valueDisplay) {
+          let newValue = parseFloat(slider.value) + 0.05;
+          newValue = Math.min(parseFloat(slider.max), newValue);
+          slider.value = newValue;
+          document.documentElement.style.setProperty('--size-scale', newValue);
+          valueDisplay.textContent = `${newValue.toFixed(1)}x`;
+          updateFretboard();
+        }
+      } else if (key === '-' || key === '_') {
+        e.preventDefault();
+        // Decrease size
+        const slider = document.getElementById('size-slider');
+        const valueDisplay = document.getElementById('size-value');
+        if (slider && valueDisplay) {
+          let newValue = parseFloat(slider.value) - 0.05;
+          newValue = Math.max(parseFloat(slider.min), newValue);
+          slider.value = newValue;
+          document.documentElement.style.setProperty('--size-scale', newValue);
+          valueDisplay.textContent = `${newValue.toFixed(1)}x`;
+          updateFretboard();
+        }
+      }
+    });
+  })();
+
+  // Floating color palette interactions
+  (function initFloatingPalette() {
+    const floatingPalette = document.getElementById('floating-color-palette');
+    const swatches = floatingPalette.querySelectorAll('.color-swatch');
+    const mainSwatches = document.querySelectorAll('.color-palette .color-swatch');
+    
+    swatches.forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        // Update current color
+        window.currentNoteColor = swatch.dataset.color;
+        
+        // Update main palette selection
+        mainSwatches.forEach(s => s.classList.remove('selected'));
+        const mainSwatch = document.querySelector(`.color-palette .color-swatch[data-color="${swatch.dataset.color}"]`);
+        if (mainSwatch) mainSwatch.classList.add('selected');
+        
+        // Hide floating palette
+        floatingPalette.classList.remove('visible');
+      });
+    });
+    
+    // Hide palette when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!floatingPalette.contains(e.target) && floatingPalette.classList.contains('visible')) {
+        floatingPalette.classList.remove('visible');
+      }
+    });
+    
+    // Hide palette on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && floatingPalette.classList.contains('visible')) {
+        floatingPalette.classList.remove('visible');
+      }
     });
   })();
 
@@ -884,8 +1283,7 @@ Add clicable notes
     if (existingIndex !== -1) {
       window.clickedNotes.splice(existingIndex, 1);
     } else {
-      const type = event.shiftKey ? "root" : "normal";
-      window.clickedNotes.push({string, fret, type, color: window.currentNoteColor});
+      window.clickedNotes.push({string, fret, type: 'normal', color: window.currentNoteColor});
     }
     updateFretboard();
   });
