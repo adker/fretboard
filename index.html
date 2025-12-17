@@ -636,6 +636,10 @@
         <option value="piano">Piano (keyboard)</option>
       </select>
     </div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 4px 16px;">
+      <input type="checkbox" id="keep-notes" />
+      <label for="keep-notes" style="font-weight: 500; color: #374151; cursor: pointer;">Keep notes when changing instrument</label>
+    </div>
     <div>
       <button id="clear">Clear</button>
       <button id="save-diagram">Save diagram</button>
@@ -678,7 +682,7 @@
       <div style="display: flex; gap: 16px; margin-left: 26px;">
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-scope" id="display-selected" value="selected" checked style="width: 16px; height: 16px; cursor: pointer;">
-          Selected only
+          Clicked only
         </label>
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-scope" id="display-all" value="all" style="width: 16px; height: 16px; cursor: pointer;">
@@ -718,12 +722,32 @@
   <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #4b5563;">
     <strong style="color: #1f2937;">Instructions:</strong><br>
     • <strong>Click</strong> on a cell to add or remove a note<br>
+    • <strong>Hold 'd'</strong> and hover over notes to delete them<br>
     • <strong>Ctrl + Click</strong> (or <strong>long press</strong> on mobile) to select a note
   </p>
 </div>  
 
 <script>
   const fretboard = document.getElementById("fretboard");
+
+  // Track 'd' key state for delete mode
+  window.deleteMode = false;
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'd' || e.key === 'D') {
+      window.deleteMode = true;
+      // Add visual feedback
+      document.body.style.cursor = 'not-allowed';
+    }
+  });
+  
+  document.addEventListener('keyup', (e) => {
+    if (e.key === 'd' || e.key === 'D') {
+      window.deleteMode = false;
+      // Remove visual feedback
+      document.body.style.cursor = '';
+    }
+  });
 
   const MARKER_FRETS = [3, 5, 7, 9];
   const DOUBLE_MARKER_FRET = 12;
@@ -734,25 +758,29 @@
       name: 'Guitar',
       type: 'fretboard',
       strings: 6,
-      tuning: [5, 12, 8, 3, 10, 5] // E, B, G, D, A, E (string 0 = highest pitch)
+      tuning: [5, 12, 8, 3, 10, 5], // E, B, G, D, A, E (string 0 = highest pitch)
+      octaves: [5, 4, 4, 4, 3, 3] // E5, B4, G4, D4, A3, E3 (string 0 = highest)
     },
     ukulele: {
       name: 'Ukulele',
       type: 'fretboard',
       strings: 4,
-      tuning: [10, 5, 1, 8] // A, E, C, G (string 0 = highest pitch)
+      tuning: [10, 5, 1, 8], // A, E, C, G (string 0 = highest pitch)
+      octaves: [4, 4, 4, 4] // A4, E4, C4, G4
     },
     bass: {
       name: 'Bass',
       type: 'fretboard',
       strings: 4,
-      tuning: [8, 3, 10, 5] // G, D, A, E (string 0 = highest pitch)
+      tuning: [8, 3, 10, 5], // G, D, A, E (string 0 = highest pitch)
+      octaves: [3, 3, 2, 2] // G3, D3, A2, E2 (lowest open E on octave 2 for consistency with the guitar)
     },
     piano: {
       name: 'Piano',
       type: 'keyboard',
       keys: 88, // Full piano keyboard (A0 to C8)
-      startNote: 10 // Start from A
+      startNote: 10, // Start from A
+      startOctave: 0 // Piano starts at A0, middle C (C4) is at key 39
     }
   };
 
@@ -767,16 +795,148 @@
     const config = getCurrentConfig();
     if (config.type === 'keyboard') {
       // For piano: string represents key index, fret is always 0
-      return ((config.startNote + string - 1) % 12) + 1;
+      // Piano starts at A (note 10), convert to 0-based, then back to 1-based
+      const noteIndex = ((config.startNote - 1 + string) % 12);
+      return noteIndex + 1;
     }
     return ((config.tuning[string] + fret - 1) % 12) + 1;
   }
   
+  // Calculate absolute pitch for a note position (includes octave)
+  // Returns a unique number representing the exact pitch (MIDI note number style)
+  function getAbsolutePitch(string, fret, config) {
+    if (config.type === 'keyboard') {
+      // For piano: calculate from start note and octave
+      // Piano starts at A0 (MIDI 21), but we'll use simpler 0-based: A0 = 9
+      const keyPosition = string; // string is actually key index for piano
+      // Each key is one semitone: A0, A#0, B0, C1, C#1, etc.
+      const totalSemitones = keyPosition;
+      const noteValue = (config.startNote - 1 + totalSemitones) % 12; // 0-11
+      const octave = config.startOctave + Math.floor((config.startNote - 1 + totalSemitones) / 12);
+      return octave * 12 + noteValue;
+    } else {
+      // For fretboard: calculate from string tuning + octave + fret
+      // tuning[string] is 1-12, convert to 0-11 for calculation
+      const openStringNote = config.tuning[string] - 1; // Convert to 0-11
+      const openStringOctave = config.octaves[string];
+      const totalSemitones = openStringNote + fret;
+      const octave = openStringOctave + Math.floor(totalSemitones / 12);
+      const noteValue = totalSemitones % 12;
+      return octave * 12 + noteValue;
+    }
+  }
+  
+  // Convert notes between instruments by preserving exact pitches (note + octave)
+  function convertNotesToNewInstrument(oldInstrument, newInstrument) {
+    const oldConfig = INSTRUMENTS[oldInstrument];
+    const newConfig = INSTRUMENTS[newInstrument];
+    
+    if (!oldConfig || !newConfig) return;
+    
+    // Collect all unique absolute pitches from current notes
+    const pitchMap = new Map(); // absolutePitch -> {colors: Set, types: Set}
+    
+    // Process clicked notes
+    window.clickedNotes.forEach(note => {
+      const absolutePitch = getAbsolutePitch(note.string, note.fret, oldConfig);
+      
+      if (!pitchMap.has(absolutePitch)) {
+        pitchMap.set(absolutePitch, {colors: new Set(), types: new Set()});
+      }
+      pitchMap.get(absolutePitch).colors.add(note.color);
+      pitchMap.get(absolutePitch).types.add(note.type || 'normal');
+    });
+    
+    // Process filled notes
+    window.filledNotes.forEach(note => {
+      const absolutePitch = getAbsolutePitch(note.string, note.fret, oldConfig);
+      
+      if (!pitchMap.has(absolutePitch)) {
+        pitchMap.set(absolutePitch, {colors: new Set(), types: new Set()});
+      }
+      pitchMap.get(absolutePitch).colors.add(note.color);
+      pitchMap.get(absolutePitch).types.add(note.type || 'normal');
+    });
+    
+    // Process grey notes
+    window.greyNotes.forEach(note => {
+      const absolutePitch = getAbsolutePitch(note.string, note.fret, oldConfig);
+      
+      if (!pitchMap.has(absolutePitch)) {
+        pitchMap.set(absolutePitch, {colors: new Set(), types: new Set()});
+      }
+      pitchMap.get(absolutePitch).colors.add('grey');
+      pitchMap.get(absolutePitch).types.add(note.type || 'normal');
+    });
+    
+    // Now find all positions on new instrument that match these absolute pitches
+    const newClicked = [];
+    const newFilled = [];
+    const newGrey = [];
+    
+    if (newConfig.type === 'keyboard') {
+      // Map to piano keys
+      for (let key = 0; key < newConfig.keys; key++) {
+        const absolutePitch = getAbsolutePitch(key, 0, newConfig);
+        if (pitchMap.has(absolutePitch)) {
+          const info = pitchMap.get(absolutePitch);
+          info.colors.forEach(color => {
+            const note = {string: key, fret: 0, type: Array.from(info.types)[0], color: color};
+            if (color === 'grey') {
+              // Avoid duplicates in grey notes
+              if (!newGrey.some(n => n.string === key && n.fret === 0)) {
+                newGrey.push(note);
+              }
+            } else {
+              // Avoid duplicates - first color becomes clicked
+              if (!newClicked.some(n => n.string === key && n.fret === 0) &&
+                  !newFilled.some(n => n.string === key && n.fret === 0)) {
+                newClicked.push(note);
+              }
+            }
+          });
+        }
+      }
+    } else {
+      // Map to fretboard (strings and frets)
+      for (let string = 0; string < newConfig.strings; string++) {
+        for (let fret = 0; fret <= 12; fret++) {
+          const absolutePitch = getAbsolutePitch(string, fret, newConfig);
+          if (pitchMap.has(absolutePitch)) {
+            const info = pitchMap.get(absolutePitch);
+            info.colors.forEach(color => {
+              const note = {string: string, fret: fret, type: Array.from(info.types)[0], color: color};
+              if (color === 'grey') {
+                // Avoid duplicates in grey notes
+                if (!newGrey.some(n => n.string === string && n.fret === fret)) {
+                  newGrey.push(note);
+                }
+              } else {
+                // Avoid duplicates - first color becomes clicked
+                if (!newClicked.some(n => n.string === string && n.fret === fret) &&
+                    !newFilled.some(n => n.string === string && n.fret === fret)) {
+                  newClicked.push(note);
+                }
+              }
+            });
+          }
+        }
+      }
+    }
+    
+    // Update global note arrays
+    window.clickedNotes = newClicked;
+    window.filledNotes = newFilled;
+    window.greyNotes = newGrey;
+  }
+  
   // Helper to check if a piano key is black
   function isPianoBlackKey(keyIndex) {
-    const noteInOctave = keyIndex % 12;
-    // Black keys are at positions 1, 3, 6, 8, 10 (C#, D#, F#, G#, A#)
-    return [1, 3, 6, 8, 10].includes(noteInOctave);
+    const config = getCurrentConfig();
+    // Calculate which note this key represents (0-11, where C=0)
+    const noteValue = (config.startNote - 1 + keyIndex) % 12;
+    // Black keys are C#(1), D#(3), F#(6), G#(8), A#(10) in 0-based where C=0
+    return [1, 3, 6, 8, 10].includes(noteValue);
   }
 
   const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -1043,14 +1203,18 @@
     
     // Show all notes if enabled
     if (window.showNotes && window.showAll) {
-      for (let i = 0; i < config.keys; i++) {
-        const keyEl = document.querySelector(`.piano-key[data-string=\"${i}\"]`);
-        if (!keyEl || keyEl.querySelector('.note')) continue;
+      const allKeys = fretboard.querySelectorAll('.piano-key');
+      allKeys.forEach(keyEl => {
+        // Skip if already has a note
+        if (keyEl.querySelector('.note')) return;
         
-        const noteNum = getNote(i, 0);
+        const keyIndex = parseInt(keyEl.dataset.string);
+        if (isNaN(keyIndex)) return;
+        
+        const noteNum = getNote(keyIndex, 0);
         const note = document.createElement('div');
         note.className = 'note all-notes-display';
-        note.dataset.string = i;
+        note.dataset.string = keyIndex;
         note.dataset.fret = 0;
         note.textContent = getNoteName(noteNum);
         
@@ -1061,7 +1225,7 @@
         
         keyEl.style.position = 'relative';
         keyEl.appendChild(note);
-      }
+      });
     }
   }
 
@@ -1646,27 +1810,48 @@
     // Force guitar on page load
     instrumentSelect.value = 'guitar';
     window.currentInstrument = 'guitar';
+    
+    // Force keep-notes unchecked on page load
+    const keepNotesCheckbox = document.getElementById('keep-notes');
+    if (keepNotesCheckbox) {
+      keepNotesCheckbox.checked = false;
+    }
 
     instrumentSelect.addEventListener('change', () => {
-      window.currentInstrument = instrumentSelect.value;
+      const oldInstrument = window.currentInstrument;
+      const newInstrument = instrumentSelect.value;
+      const keepNotes = document.getElementById('keep-notes')?.checked || false;
+      
+      // Convert notes to new instrument if keep-notes is checked
+      if (keepNotes) {
+        convertNotesToNewInstrument(oldInstrument, newInstrument);
+      } else {
+        // Clear all notes when changing instrument
+        window.clickedNotes = [];
+        window.filledNotes = [];
+        window.greyNotes = [];
+      }
+      
+      window.currentInstrument = newInstrument;
       const config = getCurrentConfig();
       
       // Show/hide Left/Right end controls based on instrument type
-      const leftRightControls = document.querySelector('[for=\"left-end\"]').closest('div');
+      const leftRightControls = document.querySelector('[for="left-end"]').closest('div');
       if (leftRightControls) {
         leftRightControls.style.display = (config.type === 'keyboard') ? 'none' : 'flex';
       }
       
-      // Clear all notes when changing instrument
-      window.clickedNotes = [];
-      window.filledNotes = [];
-      window.greyNotes = [];
+      // Clear selectedNoteKey as it's position-specific
       window.selectedNoteKey = null;
-      // Reset left/right end values to defaults
-      const leftEndInput = document.getElementById('left-end');
-      const rightEndInput = document.getElementById('right-end');
-      if (leftEndInput) leftEndInput.value = 0;
-      if (rightEndInput) rightEndInput.value = 12;
+      
+      // Reset left/right end values to defaults for fretboard instruments
+      if (config.type !== 'keyboard') {
+        const leftEndInput = document.getElementById('left-end');
+        const rightEndInput = document.getElementById('right-end');
+        if (leftEndInput) leftEndInput.value = 0;
+        if (rightEndInput) rightEndInput.value = 12;
+      }
+      
       updateFretboard();
     });
   })();
@@ -1833,6 +2018,44 @@ Add clicable notes
       window.clickedNotes.push({string, fret, type: 'normal', color: window.currentNoteColor});
     }
     updateFretboard();
+  });
+  
+  // Delete notes on hover while 'd' key is pressed
+  fretboard.addEventListener("mouseover", (event) => {
+    if (!window.deleteMode) return;
+    
+    const target =
+      event.target.closest(".cell") ||
+      event.target.closest(".open-string") ||
+      event.target.closest(".piano-key");
+
+    if (!target) return;
+
+    const string = parseInt(target.dataset.string, 10);
+    const fret = parseInt(target.dataset.fret, 10);
+
+    // Remove from clickedNotes if exists
+    const clickedIndex = window.clickedNotes.findIndex(n => n.string === string && n.fret === fret);
+    if (clickedIndex !== -1) {
+      window.clickedNotes.splice(clickedIndex, 1);
+      updateFretboard();
+      return;
+    }
+    
+    // Remove from filledNotes if exists
+    const filledIndex = window.filledNotes.findIndex(n => n.string === string && n.fret === fret);
+    if (filledIndex !== -1) {
+      window.filledNotes.splice(filledIndex, 1);
+      updateFretboard();
+      return;
+    }
+    
+    // Remove from greyNotes if exists
+    const greyIndex = window.greyNotes.findIndex(n => n.string === string && n.fret === fret);
+    if (greyIndex !== -1) {
+      window.greyNotes.splice(greyIndex, 1);
+      updateFretboard();
+    }
   });
 
 </script>
