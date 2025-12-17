@@ -1196,7 +1196,7 @@
           const selFret = parseInt(parts[1].substring(1));
           const refNote = getNote(selString, selFret);
           note.textContent = getInterval(refNote, noteNum);
-        } else if (!window.showFunction || window.showAll) {
+        } else {
           note.textContent = getNoteName(noteNum);
         }
       }
@@ -1212,6 +1212,11 @@
       
       keyEl.style.position = 'relative';
       keyEl.appendChild(note);
+      
+      // apply selected class if this is the selected note
+      if (window.selectedNoteKey === note.dataset.key) {
+        note.classList.add('selected');
+      }
     });
     
     // Add grey notes
@@ -1241,6 +1246,11 @@
       
       keyEl.style.position = 'relative';
       keyEl.appendChild(note);
+      
+      // apply selected class if this is the selected note
+      if (window.selectedNoteKey === note.dataset.key) {
+        note.classList.add('selected');
+      }
     });
     
     // Show all notes if enabled
@@ -1867,6 +1877,16 @@
       const newInstrument = instrumentSelect.value;
       const keepNotes = document.getElementById('keep-notes')?.checked || false;
       
+      // Store the absolute pitch of the selected note before switching
+      let selectedNotePitch = null;
+      if (window.selectedNoteKey) {
+        const parts = window.selectedNoteKey.split('-');
+        const selString = parseInt(parts[0].substring(1));
+        const selFret = parseInt(parts[1].substring(1));
+        const oldConfig = INSTRUMENTS[oldInstrument];
+        selectedNotePitch = getAbsolutePitch(selString, selFret, oldConfig);
+      }
+      
       // Convert notes to new instrument if keep-notes is checked
       if (keepNotes) {
         convertNotesToNewInstrument(oldInstrument, newInstrument);
@@ -1886,8 +1906,33 @@
         leftRightControls.style.display = (config.type === 'keyboard') ? 'none' : 'flex';
       }
       
-      // Clear selectedNoteKey as it's position-specific
+      // Convert selectedNoteKey to the new instrument
       window.selectedNoteKey = null;
+      if (selectedNotePitch !== null) {
+        // Find the first occurrence of this pitch on the new instrument
+        if (config.type === 'keyboard') {
+          // Search piano keys
+          for (let key = 0; key < config.keys; key++) {
+            const pitch = getAbsolutePitch(key, 0, config);
+            if (pitch === selectedNotePitch) {
+              window.selectedNoteKey = noteKey(key, 0);
+              break;
+            }
+          }
+        } else {
+          // Search fretboard
+          let found = false;
+          for (let fret = 0; fret <= 12 && !found; fret++) {
+            for (let string = 0; string < config.strings && !found; string++) {
+              const pitch = getAbsolutePitch(string, fret, config);
+              if (pitch === selectedNotePitch) {
+                window.selectedNoteKey = noteKey(string, fret);
+                found = true;
+              }
+            }
+          }
+        }
+      }
       
       // Reset left/right end values to defaults for fretboard instruments
       if (config.type !== 'keyboard') {
