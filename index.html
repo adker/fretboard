@@ -833,6 +833,9 @@
     
     if (!oldConfig || !newConfig) return;
     
+    console.log('Converting from', oldInstrument, 'to', newInstrument);
+    console.log('Current notes before conversion:', window.clickedNotes.length, 'clicked,', window.filledNotes.length, 'filled');
+    
     // Collect all unique absolute pitches from current notes
     const pitchMap = new Map(); // absolutePitch -> {colors: Set, types: Set}
     
@@ -928,6 +931,9 @@
     window.clickedNotes = newClicked;
     window.filledNotes = newFilled;
     window.greyNotes = newGrey;
+    
+    console.log('After conversion:', newClicked.length, 'clicked,', newFilled.length, 'filled');
+    console.log('Converted notes:', newClicked);
   }
   
   // Helper to check if a piano key is black
@@ -980,6 +986,12 @@
 
   // Current color for next clicked notes
   window.currentNoteColor = 'color-1';
+  
+  // Initialize fretboard globals to prevent undefined values
+  window.currentStartFret = 1;
+  window.currentShowOpen = true;
+  window.currentMinFret = 0;
+  window.currentMaxFret = 12;
 
   function noteKey(stringIdx, fretIdx) {
     return `s${stringIdx}-f${fretIdx}`;
@@ -1132,6 +1144,19 @@
     
     // Add notes to keys
     addPianoNotes();
+    
+    // Scroll to center on middle C (key 39)
+    // Middle C is key 39, which corresponds to the 17th white key
+    // Each white key is approximately 60px * size-scale
+    setTimeout(() => {
+      const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--size-scale'));
+      const whiteKeyWidth = 60 * scale;
+      const middleCWhiteKeyIndex = 17; // Middle C is the 17th white key (0-indexed)
+      const middleCPosition = middleCWhiteKeyIndex * whiteKeyWidth;
+      const containerWidth = fretboard.clientWidth;
+      const scrollPosition = middleCPosition - (containerWidth / 2) + (whiteKeyWidth / 2);
+      fretboard.scrollLeft = Math.max(0, scrollPosition);
+    }, 0);
   }
   
   function addPianoNotes() {
@@ -2034,8 +2059,10 @@ Add clicable notes
     const existingIndex = window.clickedNotes.findIndex(n => n.string === string && n.fret === fret);
     if (existingIndex !== -1) {
       window.clickedNotes.splice(existingIndex, 1);
+      console.log('Removed note:', string, fret);
     } else {
       window.clickedNotes.push({string, fret, type: 'normal', color: window.currentNoteColor});
+      console.log('Added note on', window.currentInstrument, '- string:', string, 'fret:', fret, 'color:', window.currentNoteColor);
     }
     updateFretboard();
   });
