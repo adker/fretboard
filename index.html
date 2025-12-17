@@ -1138,9 +1138,20 @@
     const config = getCurrentConfig();
     const allClicked = [...window.clickedNotes, ...window.filledNotes];
     
+    // Helper function to find specific key by index
+    const findKey = (keyIndex) => {
+      const allKeys = fretboard.querySelectorAll('.piano-key');
+      for (let key of allKeys) {
+        if (parseInt(key.dataset.string) === keyIndex) {
+          return key;
+        }
+      }
+      return null;
+    };
+    
     // Add clicked and filled notes
     allClicked.forEach(noteData => {
-      const keyEl = document.querySelector(`.piano-key[data-string=\"${noteData.string}\"]`);
+      const keyEl = findKey(noteData.string);
       if (!keyEl) return;
       
       const noteNum = getNote(noteData.string, 0);
@@ -1180,8 +1191,14 @@
     
     // Add grey notes
     window.greyNotes.forEach(noteData => {
-      const keyEl = document.querySelector(`.piano-key[data-string=\"${noteData.string}\"]`);
-      if (!keyEl || keyEl.querySelector('.note')) return;
+      const keyEl = findKey(noteData.string);
+      if (!keyEl) return;
+      
+      // Check if THIS specific key already has a note (not nested children)
+      const existingNotes = Array.from(keyEl.children).filter(child => 
+        child.classList.contains('note') && parseInt(child.dataset.string) === noteData.string
+      );
+      if (existingNotes.length > 0) return;
       
       const note = document.createElement('div');
       note.className = 'note grey';
@@ -1205,11 +1222,14 @@
     if (window.showNotes && window.showAll) {
       const allKeys = fretboard.querySelectorAll('.piano-key');
       allKeys.forEach(keyEl => {
-        // Skip if already has a note
-        if (keyEl.querySelector('.note')) return;
-        
         const keyIndex = parseInt(keyEl.dataset.string);
         if (isNaN(keyIndex)) return;
+        
+        // Check if THIS specific key already has a note (not nested children)
+        const existingNotes = Array.from(keyEl.children).filter(child => 
+          child.classList.contains('note') && parseInt(child.dataset.string) === keyIndex
+        );
+        if (existingNotes.length > 0) return;
         
         const noteNum = getNote(keyIndex, 0);
         const note = document.createElement('div');
