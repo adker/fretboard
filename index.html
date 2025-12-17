@@ -85,6 +85,80 @@
       border-radius: 4px;
     }
 
+    /* Piano keyboard */
+    .fretboard.piano {
+      display: block;
+      grid-template-columns: none;
+      grid-template-rows: none;
+      border-left: none !important;
+      background: #1f2937;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      padding: 0;
+      border-radius: 8px;
+      height: auto;
+      max-width: calc(840px * var(--size-scale));
+    }
+    
+    /* Always show scrollbar for piano */
+    .fretboard.piano::-webkit-scrollbar {
+      height: 12px;
+    }
+    
+    .fretboard.piano::-webkit-scrollbar-track {
+      background: #e5e7eb;
+      border-radius: 6px;
+    }
+    
+    .fretboard.piano::-webkit-scrollbar-thumb {
+      background: #9ca3af;
+      border-radius: 6px;
+    }
+    
+    .fretboard.piano::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+
+    .piano-key {
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .piano-key.white {
+      width: calc(40px * var(--size-scale));
+      height: calc(200px * var(--size-scale));
+      background: white;
+      border: calc(2px * var(--size-scale)) solid #1f2937;
+      border-right: calc(1px * var(--size-scale)) solid #999;
+      z-index: 1;
+    }
+
+    .piano-key.white:hover {
+      background: #f0f0f0;
+    }
+
+    .piano-key.black {
+      width: calc(28px * var(--size-scale));
+      height: calc(120px * var(--size-scale));
+      background: linear-gradient(180deg, #2d2d2d 0%, #000 100%);
+      border: calc(1px * var(--size-scale)) solid #000;
+      position: absolute;
+      margin-left: calc(-14px * var(--size-scale));
+      z-index: 2;
+    }
+
+    .piano-key.black:hover {
+      background: linear-gradient(180deg, #3d3d3d 0%, #111 100%);
+    }
+
+    .piano-container {
+      position: relative;
+      display: inline-flex;
+      min-width: min-content;
+    }
+
     /* Case */
     .cell {
       position: relative;
@@ -272,15 +346,19 @@
     }
 
     #export-svg {
-      background: var(--grey-color);
-      cursor: not-allowed;
-      opacity: 0.5;
+      background: var(--primary-color);
     }
 
     #export-svg:hover {
-      background: var(--grey-color);
-      transform: none;
-      box-shadow: var(--shadow-md);
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    #export-svg:active {
+      background: var(--primary-active);
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
     }
 
     /* Fill buttons grid */
@@ -549,10 +627,22 @@
 
 <div style="margin-top: 30px; background: white; padding: 24px; border-radius: var(--border-radius); box-shadow: var(--shadow-lg);">
   <div class="controls-container" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
+      <label for="instrument-select" style="font-weight: 600; color: #374151;">Instrument:</label>
+      <select id="instrument-select" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; background: white;">
+        <option value="guitar">Guitar (6 strings)</option>
+        <option value="ukulele">Ukulele (4 strings)</option>
+        <option value="bass">Bass (4 strings)</option>
+        <option value="piano">Piano (keyboard)</option>
+      </select>
+    </div>
     <div>
       <button id="clear">Clear</button>
+      <button id="save-diagram">Save diagram</button>
+      <button id="load-diagram">Load diagram</button>
+      <input type="file" id="load-file-input" accept=".json" style="display: none;">
       <button id="export-png">Exporter PNG</button>
-      <button id="export-svg">Exporter SVG - not yet</button>
+      <button id="export-svg">Exporter SVG</button>
     </div>
     <div class="fill-buttons">
       <button id="fill-toggle">Fill / Unfill all (f)</button>
@@ -582,7 +672,7 @@
         </label>
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-mode" id="display-function" value="function" style="width: 16px; height: 16px; cursor: pointer;">
-          Function
+          Function (relative to the selected note)
         </label>
       </div>
       <div style="display: flex; gap: 16px; margin-left: 26px;">
@@ -614,7 +704,7 @@
     </div>
     <div style="display: flex; align-items: center; gap: 12px;">
       <label style="font-weight: 600; color: #374151;">File name:</label>
-      <input type="text" id="title" value="fretboard" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; min-width: 200px;">
+      <input type="text" id="title" value="diagram" autocomplete="off" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; min-width: 200px;">
     </div>
     <div style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
       <label for="size-slider" style="font-weight: 600; color: #374151;">Size (+/-):</label>
@@ -635,13 +725,58 @@
 <script>
   const fretboard = document.getElementById("fretboard");
 
-  const STRINGS = 6;
   const MARKER_FRETS = [3, 5, 7, 9];
   const DOUBLE_MARKER_FRET = 12;
 
-  const OPEN_NOTES = [5, 12, 8, 3, 10, 5]; // e, b, g, d, a, e
+  // Instrument configurations
+  const INSTRUMENTS = {
+    guitar: {
+      name: 'Guitar',
+      type: 'fretboard',
+      strings: 6,
+      tuning: [5, 12, 8, 3, 10, 5] // E, B, G, D, A, E (string 0 = highest pitch)
+    },
+    ukulele: {
+      name: 'Ukulele',
+      type: 'fretboard',
+      strings: 4,
+      tuning: [10, 5, 1, 8] // A, E, C, G (string 0 = highest pitch)
+    },
+    bass: {
+      name: 'Bass',
+      type: 'fretboard',
+      strings: 4,
+      tuning: [8, 3, 10, 5] // G, D, A, E (string 0 = highest pitch)
+    },
+    piano: {
+      name: 'Piano',
+      type: 'keyboard',
+      keys: 88, // Full piano keyboard (A0 to C8)
+      startNote: 10 // Start from A
+    }
+  };
+
+  // Current instrument state
+  window.currentInstrument = 'guitar';
+  
+  function getCurrentConfig() {
+    return INSTRUMENTS[window.currentInstrument];
+  }
+  
   function getNote(string, fret) {
-    return ((OPEN_NOTES[string] + fret - 1) % 12) + 1;
+    const config = getCurrentConfig();
+    if (config.type === 'keyboard') {
+      // For piano: string represents key index, fret is always 0
+      return ((config.startNote + string - 1) % 12) + 1;
+    }
+    return ((config.tuning[string] + fret - 1) % 12) + 1;
+  }
+  
+  // Helper to check if a piano key is black
+  function isPianoBlackKey(keyIndex) {
+    const noteInOctave = keyIndex % 12;
+    // Black keys are at positions 1, 3, 6, 8, 10 (C#, D#, F#, G#, A#)
+    return [1, 3, 6, 8, 10].includes(noteInOctave);
   }
 
   const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -721,7 +856,225 @@
     return stringIndex * gap + gap / 2;
   }
 
+  // Helper function to add selection handlers to notes
+  function addNoteSelectionHandlers(note, string, fret) {
+    // Long press support for mobile selection
+    let longPressTimer = null;
+    let isLongPress = false;
+
+    note.addEventListener("touchstart", (e) => {
+      isLongPress = false;
+      longPressTimer = setTimeout(() => {
+        isLongPress = true;
+        // Long press = toggle selection
+        setSelectedNoteDOM(note.dataset.key);
+        // Haptic feedback if available
+        if (navigator.vibrate) navigator.vibrate(50);
+      }, 500);
+    });
+
+    note.addEventListener("touchend", (e) => {
+      if (longPressTimer) clearTimeout(longPressTimer);
+      if (isLongPress) {
+        e.preventDefault();
+        e.stopPropagation();
+        isLongPress = false;
+        return;
+      }
+    });
+
+    note.addEventListener("touchcancel", (e) => {
+      if (longPressTimer) clearTimeout(longPressTimer);
+      isLongPress = false;
+    });
+
+    note.addEventListener("click", (e) => {
+      e.stopPropagation();
+      
+      // Prevent click after long press
+      if (isLongPress) {
+        isLongPress = false;
+        return;
+      }
+
+      // Ctrl+click toggles selection only (do not unclick)
+      if (e.ctrlKey) {
+        // Only allow selection on actually clicked/filled notes
+        setSelectedNoteDOM(note.dataset.key);
+        return;
+      }
+
+      // Normal click: toggle removal from clicked or filled
+      let index = window.clickedNotes.findIndex(n => n.string === string && n.fret === fret);
+      if (index !== -1) {
+        window.clickedNotes.splice(index, 1);
+      } else {
+        index = window.filledNotes.findIndex(n => n.string === string && n.fret === fret);
+        if (index !== -1) {
+          window.filledNotes.splice(index, 1);
+        }
+      }
+      // If the removed note was selected, clear selection
+      if (window.selectedNoteKey === note.dataset.key) {
+        clearSelectedNoteDOM();
+      }
+      updateFretboard();
+    });
+  }
+
+  function renderPiano() {
+    const config = getCurrentConfig();
+    fretboard.classList.add('piano');
+    
+    // Clear fretboard
+    fretboard.innerHTML = '';
+    
+    // Create piano container
+    const container = document.createElement('div');
+    container.className = 'piano-container';
+    
+    // Generate white keys first
+    let whiteKeyIndex = 0;
+    for (let i = 0; i < config.keys; i++) {
+      if (!isPianoBlackKey(i)) {
+        const key = document.createElement('div');
+        key.className = 'piano-key white';
+        key.dataset.keyindex = i;
+        key.dataset.string = i; // Use string for compatibility
+        key.dataset.fret = 0;
+        container.appendChild(key);
+        whiteKeyIndex++;
+      }
+    }
+    
+    fretboard.appendChild(container);
+    
+    // Add black keys positioned absolutely
+    const whiteKeys = container.querySelectorAll('.white');
+    let whiteKeyCount = 0;
+    for (let i = 0; i < config.keys; i++) {
+      if (isPianoBlackKey(i)) {
+        const key = document.createElement('div');
+        key.className = 'piano-key black';
+        key.dataset.keyindex = i;
+        key.dataset.string = i; // Use string for compatibility
+        key.dataset.fret = 0;
+        
+        // Position based on previous white key
+        const prevWhiteKey = whiteKeys[whiteKeyCount];
+        if (prevWhiteKey) {
+          prevWhiteKey.appendChild(key);
+        }
+      } else {
+        whiteKeyCount++;
+      }
+    }
+    
+    // Add notes to keys
+    addPianoNotes();
+  }
+  
+  function addPianoNotes() {
+    const config = getCurrentConfig();
+    const allClicked = [...window.clickedNotes, ...window.filledNotes];
+    
+    // Add clicked and filled notes
+    allClicked.forEach(noteData => {
+      const keyEl = document.querySelector(`.piano-key[data-string=\"${noteData.string}\"]`);
+      if (!keyEl) return;
+      
+      const noteNum = getNote(noteData.string, 0);
+      const colorToUse = noteData.color || window.currentNoteColor || '';
+      
+      const note = document.createElement('div');
+      note.className = `note ${colorToUse}`;
+      note.dataset.key = noteKey(noteData.string, 0);
+      note.dataset.string = noteData.string;
+      note.dataset.fret = 0;
+      
+      // Display note name if show notes is enabled
+      if (window.showNotes) {
+        if (window.showFunction && window.selectedNoteKey) {
+          const parts = window.selectedNoteKey.split('-');
+          const selString = parseInt(parts[0].substring(1));
+          const selFret = parseInt(parts[1].substring(1));
+          const refNote = getNote(selString, selFret);
+          note.textContent = getInterval(refNote, noteNum);
+        } else if (!window.showFunction || window.showAll) {
+          note.textContent = getNoteName(noteNum);
+        }
+      }
+      
+      // Position note at bottom of key
+      note.style.position = 'absolute';
+      note.style.bottom = '10px';
+      note.style.left = '50%';
+      note.style.transform = 'translateX(-50%)';
+      
+      // Add selection handlers
+      addNoteSelectionHandlers(note, noteData.string, 0);
+      
+      keyEl.style.position = 'relative';
+      keyEl.appendChild(note);
+    });
+    
+    // Add grey notes
+    window.greyNotes.forEach(noteData => {
+      const keyEl = document.querySelector(`.piano-key[data-string=\"${noteData.string}\"]`);
+      if (!keyEl || keyEl.querySelector('.note')) return;
+      
+      const note = document.createElement('div');
+      note.className = 'note grey';
+      note.dataset.key = noteKey(noteData.string, 0);
+      note.dataset.string = noteData.string;
+      note.dataset.fret = 0;
+      
+      note.style.position = 'absolute';
+      note.style.bottom = '10px';
+      note.style.left = '50%';
+      note.style.transform = 'translateX(-50%)';
+      
+      // Add selection handlers
+      addNoteSelectionHandlers(note, noteData.string, 0);
+      
+      keyEl.style.position = 'relative';
+      keyEl.appendChild(note);
+    });
+    
+    // Show all notes if enabled
+    if (window.showNotes && window.showAll) {
+      for (let i = 0; i < config.keys; i++) {
+        const keyEl = document.querySelector(`.piano-key[data-string=\"${i}\"]`);
+        if (!keyEl || keyEl.querySelector('.note')) continue;
+        
+        const noteNum = getNote(i, 0);
+        const note = document.createElement('div');
+        note.className = 'note all-notes-display';
+        note.dataset.string = i;
+        note.dataset.fret = 0;
+        note.textContent = getNoteName(noteNum);
+        
+        note.style.position = 'absolute';
+        note.style.bottom = '10px';
+        note.style.left = '50%';
+        note.style.transform = 'translateX(-50%)';
+        
+        keyEl.style.position = 'relative';
+        keyEl.appendChild(note);
+      }
+    }
+  }
+
   function updateFretboard() {
+    const config = getCurrentConfig();
+    
+    // Check if piano and render differently
+    if (config.type === 'keyboard') {
+      renderPiano();
+      return;
+    }
+    
+    // Fretboard instrument logic
     const leftEnd = parseInt(document.getElementById('left-end').value);
     const rightEnd = parseInt(document.getElementById('right-end').value);
     const startFret = leftEnd;
@@ -736,6 +1089,10 @@
     window.currentShowOpen = showOpen;
     window.currentMinFret = minFret;
     window.currentMaxFret = maxFret;
+
+    // Update grid for current instrument
+    fretboard.classList.remove('piano');
+    fretboard.style.gridTemplateRows = `repeat(${config.strings}, calc(var(--string-gap) * var(--size-scale)))`;
 
     // Clear fretboard except indicator
     const indicator = document.querySelector('.hover-indicator');
@@ -753,7 +1110,7 @@
 
     // Add open strings
     if (showOpen) {
-      for (let string = 0; string < STRINGS; string++) {
+      for (let string = 0; string < config.strings; string++) {
         const open = document.createElement("div");
         open.className = "open-string";
         open.dataset.string = string;
@@ -765,7 +1122,7 @@
 
     // Add cells
     const cellStartFret = showOpen ? 1 : startFret;
-    for (let string = 0; string < STRINGS; string++) {
+    for (let string = 0; string < config.strings; string++) {
       for (let fret = cellStartFret; fret <= endFret; fret++) {
         const cell = document.createElement("div");
         cell.className = "cell";
@@ -776,7 +1133,7 @@
     }
 
     // Add markers
-    const markerY = 3 * getStringGap();
+    const markerY = (config.strings / 2) * getStringGap();
     MARKER_FRETS.forEach(fret => {
       if (fret >= minFret && fret <= maxFret) {
         const marker = document.createElement("div");
@@ -789,8 +1146,8 @@
 
     // Double marker
     if (DOUBLE_MARKER_FRET >= minFret && DOUBLE_MARKER_FRET <= maxFret) {
-      const topMarkerY = 2 * getStringGap();
-      const bottomMarkerY = 4 * getStringGap();
+      const topMarkerY = (config.strings / 2 - 1) * getStringGap();
+      const bottomMarkerY = (config.strings / 2 + 1) * getStringGap();
       const topMarker = document.createElement("div");
       topMarker.className = "marker";
       topMarker.style.left = `${xForFret(DOUBLE_MARKER_FRET)}px`;
@@ -849,68 +1206,8 @@
           note.style.top = `${yForString(string)}px`;
         }
 
-        // Long press support for mobile selection
-        let longPressTimer = null;
-        let isLongPress = false;
-
-        note.addEventListener("touchstart", (e) => {
-          isLongPress = false;
-          longPressTimer = setTimeout(() => {
-            isLongPress = true;
-            // Long press = toggle selection
-            setSelectedNoteDOM(note.dataset.key);
-            // Haptic feedback if available
-            if (navigator.vibrate) navigator.vibrate(50);
-          }, 500);
-        });
-
-        note.addEventListener("touchend", (e) => {
-          if (longPressTimer) clearTimeout(longPressTimer);
-          if (isLongPress) {
-            e.preventDefault();
-            e.stopPropagation();
-            isLongPress = false;
-            return;
-          }
-        });
-
-        note.addEventListener("touchcancel", (e) => {
-          if (longPressTimer) clearTimeout(longPressTimer);
-          isLongPress = false;
-        });
-
-        note.addEventListener("click", (e) => {
-          e.stopPropagation();
-          
-          // Prevent click after long press
-          if (isLongPress) {
-            isLongPress = false;
-            return;
-          }
-
-          // Ctrl+click toggles selection only (do not unclick)
-          if (e.ctrlKey) {
-            // Only allow selection on actually clicked/filled notes
-            setSelectedNoteDOM(note.dataset.key);
-            return;
-          }
-
-          // Normal click: toggle removal from clicked or filled
-          let index = window.clickedNotes.findIndex(n => n.string === string && n.fret === fret);
-          if (index !== -1) {
-            window.clickedNotes.splice(index, 1);
-          } else {
-            index = window.filledNotes.findIndex(n => n.string === string && n.fret === fret);
-            if (index !== -1) {
-              window.filledNotes.splice(index, 1);
-            }
-          }
-          // If the removed note was selected, clear selection
-          if (window.selectedNoteKey === note.dataset.key) {
-            clearSelectedNoteDOM();
-          }
-          updateFretboard();
-        });
+        // Add selection handlers
+        addNoteSelectionHandlers(note, string, fret);
 
         fretboard.appendChild(note);
         // apply selected class if this is the selected note
@@ -984,7 +1281,7 @@
     // Show all notes when enabled - display white discs for unclicked cells
     if (window.showNotes && window.showAll) {
       const cellStartFret = showOpen ? 0 : startFret;
-      for (let string = 0; string < STRINGS; string++) {
+      for (let string = 0; string < config.strings; string++) {
         for (let fret = cellStartFret; fret <= endFret; fret++) {
           // Skip if this position already has a clicked/filled note or grey note
           const hasClicked = allClicked.some(n => n.string === string && n.fret === fret);
@@ -1057,7 +1354,8 @@
       const y = e.clientY - rect.top;
 
       let stringIndex = Math.floor(y / getStringGap());
-      stringIndex = Math.max(0, Math.min(STRINGS - 1, stringIndex));
+      const config = getCurrentConfig();
+      stringIndex = Math.max(0, Math.min(config.strings - 1, stringIndex));
 
       let fret;
       const openThreshold = getFretWidth() * 0.25;
@@ -1131,14 +1429,28 @@
       // Get unique note numbers from clicked notes
       const uniqueNotes = Array.from(new Set(window.clickedNotes.map(n => getNote(n.string, n.fret))));
       // For each unique note, add all positions with that note to filled, preserving color when possible
+      const config = getCurrentConfig();
       uniqueNotes.forEach(note => {
         const fillColor = colorMap[note] || window.currentNoteColor;
-        for (let s = 0; s < STRINGS; s++) {
-          for (let f = 0; f <= 12; f++) { // assuming max fret 12
-            if (getNote(s, f) === note) {
-              const exists = window.filledNotes.some(n => n.string === s && n.fret === f);
+        if (config.type === 'keyboard') {
+          // For piano: fill all keys with same note
+          for (let k = 0; k < config.keys; k++) {
+            if (getNote(k, 0) === note) {
+              const exists = window.filledNotes.some(n => n.string === k && n.fret === 0);
               if (!exists) {
-                window.filledNotes.push({string: s, fret: f, type: 'normal', color: fillColor});
+                window.filledNotes.push({string: k, fret: 0, type: 'normal', color: fillColor});
+              }
+            }
+          }
+        } else {
+          // For fretboard instruments
+          for (let s = 0; s < config.strings; s++) {
+            for (let f = 0; f <= 12; f++) { // assuming max fret 12
+              if (getNote(s, f) === note) {
+                const exists = window.filledNotes.some(n => n.string === s && n.fret === f);
+                if (!exists) {
+                  window.filledNotes.push({string: s, fret: f, type: 'normal', color: fillColor});
+                }
               }
             }
           }
@@ -1156,13 +1468,27 @@
       // Get unique notes from current clicked notes
       const uniqueNotes = new Set(window.clickedNotes.map(n => getNote(n.string, n.fret)));
       // For each unique note, add all positions with that note to grey
+      const config = getCurrentConfig();
       uniqueNotes.forEach(note => {
-        for (let s = 0; s < STRINGS; s++) {
-          for (let f = 0; f <= 12; f++) { // assuming max fret 12
-            if (getNote(s, f) === note) {
-              const exists = window.greyNotes.some(n => n.string === s && n.fret === f);
+        if (config.type === 'keyboard') {
+          // For piano: fill all keys with same note
+          for (let k = 0; k < config.keys; k++) {
+            if (getNote(k, 0) === note) {
+              const exists = window.greyNotes.some(n => n.string === k && n.fret === 0);
               if (!exists) {
-                window.greyNotes.push({string: s, fret: f});
+                window.greyNotes.push({string: k, fret: 0});
+              }
+            }
+          }
+        } else {
+          // For fretboard instruments
+          for (let s = 0; s < config.strings; s++) {
+            for (let f = 0; f <= 12; f++) { // assuming max fret 12
+              if (getNote(s, f) === note) {
+                const exists = window.greyNotes.some(n => n.string === s && n.fret === f);
+                if (!exists) {
+                  window.greyNotes.push({string: s, fret: f});
+                }
               }
             }
           }
@@ -1203,13 +1529,29 @@
       if (selClicked && selClicked.color) sourceColor = selClicked.color;
       const selFilled = window.filledNotes.find(n => n.string === s && n.fret === f);
       if (!selClicked && selFilled && selFilled.color) sourceColor = selFilled.color;
-      for (let ss = 0; ss < STRINGS; ss++) {
-        for (let ff = 0; ff <= 12; ff++) {
-          if (getNote(ss, ff) === targetNote) {
-            const alreadyClicked = window.clickedNotes.some(n => n.string === ss && n.fret === ff);
-            const alreadyFilled = window.filledNotes.some(n => n.string === ss && n.fret === ff);
+      const config = getCurrentConfig();
+      
+      if (config.type === 'keyboard') {
+        // For piano: fill all keys with same note
+        for (let k = 0; k < config.keys; k++) {
+          if (getNote(k, 0) === targetNote) {
+            const alreadyClicked = window.clickedNotes.some(n => n.string === k && n.fret === 0);
+            const alreadyFilled = window.filledNotes.some(n => n.string === k && n.fret === 0);
             if (!alreadyClicked && !alreadyFilled) {
-              window.filledNotes.push({string: ss, fret: ff, type: 'normal', color: sourceColor});
+              window.filledNotes.push({string: k, fret: 0, type: 'normal', color: sourceColor});
+            }
+          }
+        }
+      } else {
+        // For fretboard instruments
+        for (let ss = 0; ss < config.strings; ss++) {
+          for (let ff = 0; ff <= 12; ff++) {
+            if (getNote(ss, ff) === targetNote) {
+              const alreadyClicked = window.clickedNotes.some(n => n.string === ss && n.fret === ff);
+              const alreadyFilled = window.filledNotes.some(n => n.string === ss && n.fret === ff);
+              if (!alreadyClicked && !alreadyFilled) {
+                window.filledNotes.push({string: ss, fret: ff, type: 'normal', color: sourceColor});
+              }
             }
           }
         }
@@ -1293,6 +1635,39 @@
         window.showAll = true;
         updateFretboard();
       }
+    });
+  })();
+
+  // Instrument selector
+  (function initInstrumentSelector() {
+    const instrumentSelect = document.getElementById('instrument-select');
+    if (!instrumentSelect) return;
+
+    // Force guitar on page load
+    instrumentSelect.value = 'guitar';
+    window.currentInstrument = 'guitar';
+
+    instrumentSelect.addEventListener('change', () => {
+      window.currentInstrument = instrumentSelect.value;
+      const config = getCurrentConfig();
+      
+      // Show/hide Left/Right end controls based on instrument type
+      const leftRightControls = document.querySelector('[for=\"left-end\"]').closest('div');
+      if (leftRightControls) {
+        leftRightControls.style.display = (config.type === 'keyboard') ? 'none' : 'flex';
+      }
+      
+      // Clear all notes when changing instrument
+      window.clickedNotes = [];
+      window.filledNotes = [];
+      window.greyNotes = [];
+      window.selectedNoteKey = null;
+      // Reset left/right end values to defaults
+      const leftEndInput = document.getElementById('left-end');
+      const rightEndInput = document.getElementById('right-end');
+      if (leftEndInput) leftEndInput.value = 0;
+      if (rightEndInput) rightEndInput.value = 12;
+      updateFretboard();
     });
   })();
 
@@ -1443,7 +1818,8 @@ Add clicable notes
   fretboard.addEventListener("click", (event) => {
     const target =
       event.target.closest(".cell") ||
-      event.target.closest(".open-string");
+      event.target.closest(".open-string") ||
+      event.target.closest(".piano-key");
 
     if (!target) return;
 
@@ -1521,6 +1897,27 @@ Export
 
 document.getElementById("export-png").addEventListener("click", () => {
   const node = document.getElementById("export-area");
+  const fretboard = document.getElementById("fretboard");
+  const isPiano = fretboard && fretboard.classList.contains('piano');
+
+  // For piano, hide scrollbar and adjust to show visible portion
+  let originalOverflow = null;
+  let pianoContainer = null;
+  let originalTransform = null;
+  let scrollLeft = 0;
+  
+  if (isPiano) {
+    originalOverflow = fretboard.style.overflow;
+    fretboard.style.overflowX = 'hidden';
+    
+    // Get scroll position and adjust container
+    scrollLeft = fretboard.scrollLeft;
+    pianoContainer = fretboard.querySelector('.piano-container');
+    if (pianoContainer) {
+      originalTransform = pianoContainer.style.transform;
+      pianoContainer.style.transform = `translateX(-${scrollLeft}px)`;
+    }
+  }
 
   const width = node.offsetWidth;
   const height = node.offsetHeight;
@@ -1529,6 +1926,8 @@ document.getElementById("export-png").addEventListener("click", () => {
     backgroundColor: "#ffffff",
     width,
     height,
+    pixelRatio: 2,
+    cacheBust: true,
     style: {
       margin: "0",
       padding: "0",
@@ -1537,6 +1936,16 @@ document.getElementById("export-png").addEventListener("click", () => {
     }
   })
   .then(dataUrl => {
+    // Restore scrollbar and container position
+    if (isPiano) {
+      if (originalOverflow !== null) {
+        fretboard.style.overflowX = originalOverflow;
+      }
+      if (pianoContainer && originalTransform !== null) {
+        pianoContainer.style.transform = originalTransform;
+      }
+    }
+
     const link = document.createElement("a");
 
     // Determine filename from editable title when possible
@@ -1563,8 +1972,261 @@ document.getElementById("export-png").addEventListener("click", () => {
     link.click();
   })
   .catch(err => {
+    // Restore scrollbar and container position on error
+    if (isPiano) {
+      if (originalOverflow !== null) {
+        fretboard.style.overflowX = originalOverflow;
+      }
+      if (pianoContainer && originalTransform !== null) {
+        pianoContainer.style.transform = originalTransform;
+      }
+    }
     console.error("Erreur export PNG", err);
   });
+});
+
+// SVG export
+document.getElementById("export-svg").addEventListener("click", () => {
+  const node = document.getElementById("export-area");
+  const fretboard = document.getElementById("fretboard");
+  const isPiano = fretboard && fretboard.classList.contains('piano');
+
+  // For piano, hide scrollbar and adjust to show visible portion
+  let originalOverflow = null;
+  let pianoContainer = null;
+  let originalTransform = null;
+  let scrollLeft = 0;
+  
+  if (isPiano) {
+    originalOverflow = fretboard.style.overflow;
+    fretboard.style.overflowX = 'hidden';
+    
+    // Get scroll position and adjust container
+    scrollLeft = fretboard.scrollLeft;
+    pianoContainer = fretboard.querySelector('.piano-container');
+    if (pianoContainer) {
+      originalTransform = pianoContainer.style.transform;
+      pianoContainer.style.transform = `translateX(-${scrollLeft}px)`;
+    }
+  }
+
+  const width = node.offsetWidth;
+  const height = node.offsetHeight;
+
+  htmlToImage.toSvg(node, {
+    backgroundColor: "#ffffff",
+    width,
+    height,
+    cacheBust: true,
+    style: {
+      margin: "0",
+      padding: "0",
+      width: `${width}px`,
+      height: `${height}px`,
+    }
+  })
+  .then(dataUrl => {
+    // Restore scrollbar and container position
+    if (isPiano) {
+      if (originalOverflow !== null) {
+        fretboard.style.overflowX = originalOverflow;
+      }
+      if (pianoContainer && originalTransform !== null) {
+        pianoContainer.style.transform = originalTransform;
+      }
+    }
+
+    const link = document.createElement("a");
+
+    // Determine filename from editable title when possible
+    const titleEl = document.getElementById("title");
+    let baseName = "manche-guitare";
+    if (titleEl) {
+      try {
+        const text = titleEl.value.trim();
+        if (text) baseName = text;
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // Sanitize for filesystem (remove invalid Windows filename chars)
+    baseName = baseName.replace(/[\\\/:*?"<>|]/g, "");
+    // Collapse whitespace to single hyphen and trim
+    baseName = baseName.replace(/\s+/g, "-").replace(/^-+|-+$/g, "");
+    if (!baseName) baseName = "manche-guitare";
+    baseName = baseName.slice(0, 200);
+
+    link.download = `${baseName}.svg`;
+    link.href = dataUrl;
+    link.click();
+  })
+  .catch(err => {
+    // Restore scrollbar and container position on error
+    if (isPiano) {
+      if (originalOverflow !== null) {
+        fretboard.style.overflowX = originalOverflow;
+      }
+      if (pianoContainer && originalTransform !== null) {
+        pianoContainer.style.transform = originalTransform;
+      }
+    }
+    console.error("Erreur export SVG", err);
+  });
+});
+
+// Save diagram as JSON
+document.getElementById("save-diagram").addEventListener("click", () => {
+  // Collect all state data
+  const diagramData = {
+    version: "1.0",
+    timestamp: new Date().toISOString(),
+    instrument: window.currentInstrument || 'guitar',
+    title: document.getElementById("title")?.value || "Untitled",
+    clickedNotes: window.clickedNotes || [],
+    filledNotes: window.filledNotes || [],
+    greyNotes: window.greyNotes || [],
+    currentNoteColor: window.currentNoteColor || 'color-1',
+    selectedNoteKey: window.selectedNoteKey || null,
+    // UI state
+    showNotes: document.getElementById("show-notes")?.checked || false,
+    displayMode: document.querySelector('input[name="display-mode"]:checked')?.value || 'notes',
+    displayScope: document.querySelector('input[name="display-scope"]:checked')?.value || 'selected',
+    noteNotation: document.querySelector('input[name="note-notation"]:checked')?.value || 'sharps',
+    leftEnd: parseInt(document.getElementById("left-end")?.value) || 0,
+    rightEnd: parseInt(document.getElementById("right-end")?.value) || 12,
+    scrollPosition: document.getElementById("fretboard")?.scrollLeft || 0
+  };
+
+  // Convert to JSON string
+  const jsonString = JSON.stringify(diagramData, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  // Create download link
+  const link = document.createElement("a");
+  link.href = url;
+  
+  // Generate filename from title
+  let baseName = diagramData.title;
+  baseName = baseName.replace(/[\\\/:*?"<>|]/g, "");
+  baseName = baseName.replace(/\s+/g, "-").replace(/^-+|-+$/g, "");
+  if (!baseName) baseName = "fretboard-diagram";
+  baseName = baseName.slice(0, 200);
+  
+  link.download = `${baseName}.json`;
+  link.click();
+  
+  // Clean up
+  URL.revokeObjectURL(url);
+});
+
+// Load diagram from JSON
+document.getElementById("load-diagram").addEventListener("click", () => {
+  document.getElementById("load-file-input").click();
+});
+
+document.getElementById("load-file-input").addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const diagramData = JSON.parse(e.target.result);
+      
+      // Validate data structure
+      if (!diagramData || typeof diagramData !== 'object') {
+        alert('Invalid diagram file format');
+        return;
+      }
+
+      // Restore state
+      window.clickedNotes = diagramData.clickedNotes || [];
+      window.filledNotes = diagramData.filledNotes || [];
+      window.greyNotes = diagramData.greyNotes || [];
+      window.currentNoteColor = diagramData.currentNoteColor || 'color-1';
+      window.selectedNoteKey = diagramData.selectedNoteKey || null;
+
+      // Restore instrument
+      if (diagramData.instrument && document.getElementById("instrument-select")) {
+        window.currentInstrument = diagramData.instrument;
+        document.getElementById("instrument-select").value = diagramData.instrument;
+      }
+
+      // Restore title if available
+      if (diagramData.title && document.getElementById("title")) {
+        document.getElementById("title").value = diagramData.title;
+      }
+
+      // Restore UI state
+      if (diagramData.showNotes !== undefined && document.getElementById("show-notes")) {
+        document.getElementById("show-notes").checked = diagramData.showNotes;
+        window.showNotes = diagramData.showNotes;
+      }
+
+      if (diagramData.displayMode) {
+        const displayModeRadio = document.querySelector(`input[name="display-mode"][value="${diagramData.displayMode}"]`);
+        if (displayModeRadio) {
+          displayModeRadio.checked = true;
+          window.showFunction = (diagramData.displayMode === 'function');
+        }
+      }
+
+      if (diagramData.displayScope) {
+        const displayScopeRadio = document.querySelector(`input[name="display-scope"][value="${diagramData.displayScope}"]`);
+        if (displayScopeRadio) {
+          displayScopeRadio.checked = true;
+          window.showAll = (diagramData.displayScope === 'all');
+        }
+      }
+
+      if (diagramData.noteNotation) {
+        const noteNotationRadio = document.querySelector(`input[name="note-notation"][value="${diagramData.noteNotation}"]`);
+        if (noteNotationRadio) {
+          noteNotationRadio.checked = true;
+          window.useFlats = (diagramData.noteNotation === 'flats');
+        }
+      }
+
+      if (diagramData.leftEnd !== undefined && document.getElementById("left-end")) {
+        document.getElementById("left-end").value = diagramData.leftEnd;
+      }
+
+      if (diagramData.rightEnd !== undefined && document.getElementById("right-end")) {
+        document.getElementById("right-end").value = diagramData.rightEnd;
+      }
+
+      // Update the color palette selection
+      const swatches = document.querySelectorAll('.color-palette .color-swatch');
+      swatches.forEach(s => s.classList.remove('selected'));
+      const selectedSwatch = document.querySelector(`.color-palette .color-swatch[data-color="${window.currentNoteColor}"]`);
+      if (selectedSwatch) {
+        selectedSwatch.classList.add('selected');
+      }
+
+      // Update the fretboard display
+      updateFretboard();
+      
+      // Restore scroll position for piano keyboard
+      if (diagramData.scrollPosition !== undefined) {
+        const fretboard = document.getElementById("fretboard");
+        if (fretboard) {
+          fretboard.scrollLeft = diagramData.scrollPosition;
+        }
+      }
+      
+      console.log('Diagram loaded successfully');
+    } catch (error) {
+      console.error('Error loading diagram:', error);
+      alert('Error loading diagram file. Please check the file format.');
+    }
+  };
+  
+  reader.readAsText(file);
+  
+  // Reset the input so the same file can be loaded again
+  event.target.value = '';
 });
 
 </script>
