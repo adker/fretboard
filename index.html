@@ -689,7 +689,17 @@
           All
         </label>
       </div>
-      <div style="display: flex; gap: 16px; margin-top: 4px; padding-top: 8px; border-top: 1px solid #e5e7eb;">
+      <div style="display: flex; gap: 16px; margin-left: 26px;">
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="note-system" id="use-letters" value="letters" checked style="width: 16px; height: 16px; cursor: pointer;">
+          C, D, E...
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="note-system" id="use-solfege" value="solfege" style="width: 16px; height: 16px; cursor: pointer;">
+          do, ré, mi...
+        </label>
+      </div>
+      <div style="display: flex; gap: 16px; margin-left: 26px;">
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="note-notation" id="use-sharps" value="sharps" checked style="width: 16px; height: 16px; cursor: pointer;">
           Sharps (#)
@@ -947,12 +957,20 @@
 
   const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const NOTE_NAMES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+  const NOTE_NAMES_SOLFEGE = ['do', 'do#', 'ré', 'ré#', 'mi', 'fa', 'fa#', 'sol', 'sol#', 'la', 'la#', 'si'];
+  const NOTE_NAMES_SOLFEGE_FLAT = ['do', 'réb', 'ré', 'mib', 'mi', 'fa', 'solb', 'sol', 'lab', 'la', 'sib', 'si'];
   const INTERVAL_NAMES = ['R', '2m', '2M', '3m', '3M', '4', '4+', '5', '6m', '6M', '7m', '7M'];
   
   window.useSharps = true; // Default to sharps
+  window.useSolfege = false; // Default to letter notation (C, D, E...)
   
   function getNoteName(noteNumber) {
-    const names = window.useSharps ? NOTE_NAMES : NOTE_NAMES_FLAT;
+    let names;
+    if (window.useSolfege) {
+      names = window.useSharps ? NOTE_NAMES_SOLFEGE : NOTE_NAMES_SOLFEGE_FLAT;
+    } else {
+      names = window.useSharps ? NOTE_NAMES : NOTE_NAMES_FLAT;
+    }
     return names[(noteNumber - 1) % 12];
   }
 
@@ -1837,6 +1855,12 @@
 
     displayFunctionRadio.addEventListener('change', () => {
       if (displayFunctionRadio.checked) {
+        if (!window.selectedNoteKey) {
+          alert('Select a note first');
+          displayNotesRadio.checked = true;
+          displayFunctionRadio.checked = false;
+          return;
+        }
         window.showFunction = true;
         updateFretboard();
       }
@@ -1943,6 +1967,32 @@
       }
       
       updateFretboard();
+    });
+  })();
+
+  // Note system toggle (letter vs solfège)
+  (function initNoteSystemToggle() {
+    const lettersRadio = document.getElementById('use-letters');
+    const solfegeRadio = document.getElementById('use-solfege');
+    if (!lettersRadio || !solfegeRadio) return;
+
+    // Force letter notation on page load
+    lettersRadio.checked = true;
+    solfegeRadio.checked = false;
+    window.useSolfege = false;
+
+    lettersRadio.addEventListener('change', () => {
+      if (lettersRadio.checked) {
+        window.useSolfege = false;
+        updateFretboard();
+      }
+    });
+
+    solfegeRadio.addEventListener('change', () => {
+      if (solfegeRadio.checked) {
+        window.useSolfege = true;
+        updateFretboard();
+      }
     });
   })();
 
