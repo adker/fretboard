@@ -438,6 +438,118 @@
     #floating-color-palette.visible {
       display: flex;
     }
+    
+    /* Help section */
+    .help-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      font-size: 22px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.3s ease;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .help-button:hover {
+      background: var(--primary-hover);
+      transform: scale(1.1);
+      box-shadow: 0 8px 24px rgba(99,102,241,0.3);
+    }
+    
+    .help-panel {
+      position: fixed;
+      bottom: 75px;
+      right: 20px;
+      width: 420px;
+      max-height: 70vh;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      padding: 20px 24px;
+      display: none;
+      z-index: 998;
+      overflow-y: auto;
+    }
+    
+    .help-panel.visible {
+      display: block;
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .help-panel h3 {
+      margin: 0 0 16px 0;
+      color: var(--primary-color);
+      font-size: 18px;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 8px;
+    }
+    
+    .help-section {
+      margin-bottom: 16px;
+    }
+    
+    .help-section h4 {
+      margin: 0 0 8px 0;
+      color: #1f2937;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .help-section ul {
+      margin: 0;
+      padding-left: 20px;
+      list-style: none;
+    }
+    
+    .help-section li {
+      margin-bottom: 6px;
+      color: #4b5563;
+      font-size: 13px;
+      line-height: 1.5;
+      position: relative;
+    }
+    
+    .help-section li:before {
+      content: "•";
+      position: absolute;
+      left: -12px;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+    
+    .help-section kbd {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+      border: 1px solid #d1d5db;
+      color: #374151;
+      font-weight: 600;
+    }
+    
     .color-swatch {
       width: 32px;
       height: 32px;
@@ -630,6 +742,7 @@
     <!-- First Row: Instrument and Basic Controls -->
     <div style="display: flex; flex-direction: column; gap: 12px; min-width: 100%;">
       <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+        <button id="clear">Clear</button>
         <div style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
           <label for="instrument-select" style="font-weight: 600; color: #374151;">Instrument:</label>
           <select id="instrument-select" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; background: white;">
@@ -641,7 +754,7 @@
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <input type="checkbox" id="keep-notes" />
-          <label for="keep-notes" style="font-weight: 500; color: #374151; cursor: pointer;">Keep notes when changing instrument</label>
+          <label for="keep-notes" style="font-weight: 500; color: #374151; cursor: pointer;">Keep notes when changing instrument (be careful of instruments ranges if you want to come back to the current one)</label>
         </div>
         <div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
           <label for="left-end" style="font-weight: 600; color: #374151;">Left end:</label>
@@ -684,7 +797,8 @@
               <option value="m7">m7</option>
               <option value="7">7</option>
               <option value="m7b5">m7b5 / ø</option>
-              <option value="dim">dim / °</option>
+              <option value="dim triad">dim triad / °</option>
+              <option value="dim">dim / °7</option>
               <option value="m6">m6</option>
               <option value="6">6</option>
               <option value="7#11">7#11</option>
@@ -766,7 +880,7 @@
       <div style="display: flex; gap: 16px; margin-left: 26px;">
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-scope" id="display-selected" value="selected" checked style="width: 16px; height: 16px; cursor: pointer;">
-          Clicked only
+          Filled only
         </label>
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-scope" id="display-chord" value="chord" style="width: 16px; height: 16px; cursor: pointer;">
@@ -797,6 +911,16 @@
           Flats (♭)
         </label>
       </div>
+      <div style="display: flex; gap: 16px; margin-left: 26px;">
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="tritone-notation" id="use-tritone-aug" value="augmented" checked style="width: 16px; height: 16px; cursor: pointer;">
+          Tritone: 4+
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="tritone-notation" id="use-tritone-dim" value="diminished" style="width: 16px; height: 16px; cursor: pointer;">
+          Tritone: 5-
+        </label>
+      </div>
     </div>
 
     <div class="color-palette" aria-label="Color palette">
@@ -818,12 +942,11 @@
     </div>
 
     <div>
-      <button id="clear">Clear</button>
       <button id="save-diagram">Save diagram</button>
       <button id="load-diagram">Load diagram</button>
       <input type="file" id="load-file-input" accept=".json" style="display: none;">
-      <button id="export-png">Exporter PNG</button>
-      <button id="export-svg">Exporter SVG</button>
+      <button id="export-png">Export PNG</button>
+      <button id="export-svg">Export SVG</button>
     </div>
 
     <div style="display: flex; align-items: center; gap: 12px;">
@@ -835,17 +958,83 @@
       <input type="range" id="size-slider" min="0.8" max="1.3" step="0.05" value="1" style="width: 120px; cursor: pointer;">
       <span id="size-value" style="font-weight: 600; color: #374151; min-width: 40px;">1.0x</span>
     </div>
+    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
+      <label for="png-quality" style="font-weight: 600; color: #374151;">PNG export quality:</label>
+      <select id="png-quality" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; background: white;">
+        <option value="1">1x</option>
+        <option value="2" selected>2x</option>
+        <option value="3">3x</option>
+        <option value="4">4x</option>
+      </select>
+    </div>
   </div>
 </div>
 
-<div class="instructions-box" style="margin-top: 24px; padding: 20px 24px; background: white; border-radius: var(--border-radius); box-shadow: var(--shadow-md); border-left: 4px solid var(--primary-color);">
-  <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #4b5563;">
-    <strong style="color: #1f2937;">Instructions:</strong><br>
-    • <strong>Click</strong> on a cell to add or remove a note<br>
-    • <strong>Hold 'd'</strong> and hover over notes to delete them<br>
-    • <strong>Ctrl + Click</strong> (or <strong>long press</strong> on mobile) to select a note
-  </p>
-</div>  
+<!-- Help button and panel -->
+<button class="help-button" id="help-button" title="Help">?</button>
+<div class="help-panel" id="help-panel">
+  <h3>🎸 How to Use This Tool</h3>
+  
+  <div class="help-section">
+    <h4>Basic Interactions</h4>
+    <ul>
+      <li><strong>Click</strong> on a cell to add or remove a note</li>
+      <li><strong>Ctrl + Click</strong> (or <strong>long press</strong> on mobile) to select a note</li>
+      <li><strong>Hold <kbd>d</kbd></strong> and hover over notes to delete them</li>
+    </ul>
+  </div>
+  
+  <div class="help-section">
+    <h4>Keyboard Shortcuts</h4>
+    <ul>
+      <li><kbd>c</kbd> - Toggle floating color palette at mouse position</li>
+      <li><kbd>f</kbd> - Fill/unfill all notes of the current color</li>
+      <li><kbd>g</kbd> - Fill/unfill all grey notes</li>
+      <li><kbd>s</kbd> - Fill/unfill all instances of the selected note</li>
+      <li><kbd>+</kbd> / <kbd>-</kbd> - Increase/decrease diagram size</li>
+    </ul>
+  </div>
+  
+  <div class="help-section">
+    <h4>Display Chord & Scale</h4>
+    <ul>
+      <li><strong>Clear and Show</strong> - Removes all notes and displays the selected chord/scale</li>
+      <li><strong>Show on Top</strong> - Displays the chord/scale while keeping existing notes</li>
+      <li><strong>Color by function</strong> - Colors notes based on their role (root, 3rd, 5th, etc.)</li>
+    </ul>
+  </div>
+  
+  <div class="help-section">
+    <h4>Note Labels</h4>
+    <ul>
+      <li><strong>Note name</strong> - Shows the actual note (C, D, E...)</li>
+      <li><strong>Function</strong> - Shows intervals relative to selected note (R, 3M, 5...)</li>
+      <li><strong>Filled only / Chord only / All</strong> - Controls which notes show labels</li>
+      <li>Choose between <strong>Sharps (#)</strong> or <strong>Flats (♭)</strong></li>
+      <li>Choose <strong>4+</strong> or <strong>5-</strong> for tritone intervals</li>
+    </ul>
+  </div>
+  
+  <div class="help-section">
+    <h4>Fill/Unfill Options</h4>
+    <ul>
+      <li><kbd>f</kbd> - <strong>Fill/Unfill all</strong> - Fills all notes that are the same as the current ones with the chosen color</li>
+      <li><kbd>g</kbd> - <strong>Fill/Unfill grey</strong> - Fills all notes that are the same as the current ones in grey</li>
+      <li><kbd>s</kbd> - <strong>Fill/Unfill selected</strong> - If not all instances of the selected note are filled, it fills all of them with the chosen color. Otherwise, it unfills all of them</li>
+    </ul>
+  </div>
+  
+  <div class="help-section">
+    <h4>Save/Load/Export</h4>
+    <ul>
+      <li><strong>Save</strong> - Saves your current diagram to browser storage (all the fretboard)</li>
+      <li><strong>Load</strong> - Restores a previously saved diagram (all the fretboard)</li>
+      <li><strong>Export PNG/SVG</strong> - Downloads your diagram as an image/SVG file (current window only)</li>
+      <li><strong>File name</strong> - File name used for diagram export/save</li>
+      <li><strong>PNG export quality</strong> - Choose export resolution: 1x, 2x, 3x, 4x</li>
+    </ul>
+  </div>
+</div>
 
 <script>
   const fretboard = document.getElementById("fretboard");
@@ -1126,10 +1315,12 @@
   const NOTE_NAMES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
   const NOTE_NAMES_SOLFEGE = ['do', 'do#', 'ré', 'ré#', 'mi', 'fa', 'fa#', 'sol', 'sol#', 'la', 'la#', 'si'];
   const NOTE_NAMES_SOLFEGE_FLAT = ['do', 'réb', 'ré', 'mib', 'mi', 'fa', 'solb', 'sol', 'lab', 'la', 'sib', 'si'];
-  const INTERVAL_NAMES = ['R', '2m', '2M', '3m', '3M', '4', '4+', '5', '6m', '6M', '7m', '7M'];
+  const INTERVAL_NAMES_AUGMENTED = ['R', '2m', '2M', '3m', '3M', '4', '4+', '5', '6m', '6M', '7m', '7M'];
+  const INTERVAL_NAMES_DIMINISHED = ['R', '2m', '2M', '3m', '3M', '4', '5-', '5', '6m', '6M', '7m', '7M'];
   
   window.useSharps = true; // Default to sharps
   window.useSolfege = false; // Default to letter notation (C, D, E...)
+  window.useTritoneAugmented = true; // Default to 4+ (instead of 5-)
   
   function getNoteName(noteNumber) {
     let names;
@@ -1144,7 +1335,8 @@
   function getInterval(fromNote, toNote) {
     // Calculate interval: distance from fromNote to toNote
     const interval = ((toNote - fromNote) % 12 + 12) % 12;
-    return INTERVAL_NAMES[interval];
+    const intervalNames = window.useTritoneAugmented ? INTERVAL_NAMES_AUGMENTED : INTERVAL_NAMES_DIMINISHED;
+    return intervalNames[interval];
   }
 
   // Chord definitions: intervals from root (in semitones)
@@ -1155,7 +1347,8 @@
     'm7': [0, 3, 7, 10],      // Minor 7th: Root, Minor 3rd, Perfect 5th, Minor 7th
     '7': [0, 4, 7, 10],       // Dominant 7th: Root, Major 3rd, Perfect 5th, Minor 7th
     'm7b5': [0, 3, 6, 10],    // Half-diminished: Root, Minor 3rd, Diminished 5th, Minor 7th
-    'dim': [0, 3, 6],         // Diminished: Root, Minor 3rd, Diminished 5th
+    'dim triad': [0, 3, 6],   // Diminished triad: Root, Minor 3rd, Diminished 5th
+    'dim': [0, 3, 6, 9],      // Diminished 7th: Root, Minor 3rd, Diminished 5th, Diminished 7th
     'm6': [0, 3, 7, 9],       // Minor 6th: Root, Minor 3rd, Perfect 5th, Major 6th
     '6': [0, 4, 7, 9],        // Major 6th: Root, Major 3rd, Perfect 5th, Major 6th
     '7#11': [0, 4, 6, 7, 10], // Dominant 7th #11: Root, Major 3rd, #11, Perfect 5th, Minor 7th
@@ -1169,7 +1362,7 @@
     4: 'color-2',  // Major 3rd (red)
     6: 'color-4',  // Diminished 5th / #11 (orange)
     7: 'color-3',  // Perfect 5th (green)
-    9: 'color-1',  // Major 6th (purple)
+    9: 'color-1',  // Major 6th / Diminished 7th (purple)
     10: 'color-5', // Minor 7th (blue)
     11: 'color-5'  // Major 7th (blue)
   };
@@ -1673,11 +1866,32 @@
       );
       if (existingNotes.length > 0) return;
       
+      const noteNum = getNote(noteData.string, 0);
+      
       const note = document.createElement('div');
       note.className = 'note grey';
       note.dataset.key = noteKey(noteData.string, 0);
       note.dataset.string = noteData.string;
       note.dataset.fret = 0;
+      
+      // Display note name if show notes is enabled
+      if (window.showNotes) {
+        // When "Chord only" is active (but not "All"), only show text for notes that are in lastChordNotes
+        const isInChord = window.lastChordNotes.some(cn => cn.string === noteData.string && cn.fret === 0);
+        const shouldShowText = window.showAll || !window.showChordOnly || isInChord;
+        
+        if (shouldShowText) {
+          if (window.showFunction && window.selectedNoteKey) {
+            const parts = window.selectedNoteKey.split('-');
+            const selString = parseInt(parts[0].substring(1));
+            const selFret = parseInt(parts[1].substring(1));
+            const refNote = getNote(selString, selFret);
+            note.textContent = getInterval(refNote, noteNum);
+          } else {
+            note.textContent = getNoteName(noteNum);
+          }
+        }
+      }
       
       note.style.position = 'absolute';
       note.style.bottom = '10px';
@@ -1912,15 +2126,21 @@
 
           // Display note name or interval if enabled
           if (window.showNotes) {
-            const noteNum = getNote(string, fret);
-            if (window.showFunction && window.selectedNoteKey) {
-              const selParts = window.selectedNoteKey.split('-');
-              const selString = parseInt(selParts[0].slice(1), 10);
-              const selFret = parseInt(selParts[1].slice(1), 10);
-              const rootNote = getNote(selString, selFret);
-              note.textContent = getInterval(rootNote, noteNum);
-            } else {
-              note.textContent = getNoteName(noteNum);
+            // When "Chord only" is active (but not "All"), only show text for notes that are in lastChordNotes
+            const isInChord = window.lastChordNotes.some(cn => cn.string === string && cn.fret === fret);
+            const shouldShowText = window.showAll || !window.showChordOnly || isInChord;
+            
+            if (shouldShowText) {
+              const noteNum = getNote(string, fret);
+              if (window.showFunction && window.selectedNoteKey) {
+                const selParts = window.selectedNoteKey.split('-');
+                const selString = parseInt(selParts[0].slice(1), 10);
+                const selFret = parseInt(selParts[1].slice(1), 10);
+                const rootNote = getNote(selString, selFret);
+                note.textContent = getInterval(rootNote, noteNum);
+              } else {
+                note.textContent = getNoteName(noteNum);
+              }
             }
           }
 
@@ -2228,46 +2448,50 @@
     const s = parseInt(parts[0].slice(1), 10);
     const f = parseInt(parts[1].slice(1), 10);
     const targetNote = getNote(s, f);
-    // Check if selected note is filled
-    const hasFilled = window.filledNotes.some(n => getNote(n.string, n.fret) === targetNote);
     
-    if (hasFilled) {
-      // Unfill selected
+    // determine source color from the selected note if available
+    let sourceColor = window.currentNoteColor;
+    const selClicked = window.clickedNotes.find(n => n.string === s && n.fret === f);
+    if (selClicked && selClicked.color) sourceColor = selClicked.color;
+    const selFilled = window.filledNotes.find(n => n.string === s && n.fret === f);
+    if (!selClicked && selFilled && selFilled.color) sourceColor = selFilled.color;
+    
+    const config = getCurrentConfig();
+    
+    // Collect all positions that have the same note
+    const allMatchingPositions = [];
+    if (config.type === 'keyboard') {
+      for (let k = 0; k < config.keys; k++) {
+        if (getNote(k, 0) === targetNote) {
+          allMatchingPositions.push({string: k, fret: 0});
+        }
+      }
+    } else {
+      for (let ss = 0; ss < config.strings; ss++) {
+        for (let ff = 0; ff <= 12; ff++) {
+          if (getNote(ss, ff) === targetNote) {
+            allMatchingPositions.push({string: ss, fret: ff});
+          }
+        }
+      }
+    }
+    
+    // Check if all matching positions are clicked
+    const allClicked = allMatchingPositions.every(pos => 
+      window.clickedNotes.some(n => n.string === pos.string && n.fret === pos.fret)
+    );
+    
+    if (allClicked) {
+      // If all are clicked, unclick and unfill all matching notes INCLUDING the selected note
+      window.clickedNotes = window.clickedNotes.filter(n => getNote(n.string, n.fret) !== targetNote);
       window.filledNotes = window.filledNotes.filter(n => getNote(n.string, n.fret) !== targetNote);
       window.greyNotes = window.greyNotes.filter(n => getNote(n.string, n.fret) !== targetNote);
     } else {
-      // Fill selected
-      // determine source color from the selected note if available
-      let sourceColor = window.currentNoteColor;
-      const selClicked = window.clickedNotes.find(n => n.string === s && n.fret === f);
-      if (selClicked && selClicked.color) sourceColor = selClicked.color;
-      const selFilled = window.filledNotes.find(n => n.string === s && n.fret === f);
-      if (!selClicked && selFilled && selFilled.color) sourceColor = selFilled.color;
-      const config = getCurrentConfig();
-      
-      if (config.type === 'keyboard') {
-        // For piano: fill all keys with same note
-        for (let k = 0; k < config.keys; k++) {
-          if (getNote(k, 0) === targetNote) {
-            const alreadyClicked = window.clickedNotes.some(n => n.string === k && n.fret === 0);
-            const alreadyFilled = window.filledNotes.some(n => n.string === k && n.fret === 0);
-            if (!alreadyClicked && !alreadyFilled) {
-              window.filledNotes.push({string: k, fret: 0, type: 'normal', color: sourceColor});
-            }
-          }
-        }
-      } else {
-        // For fretboard instruments
-        for (let ss = 0; ss < config.strings; ss++) {
-          for (let ff = 0; ff <= 12; ff++) {
-            if (getNote(ss, ff) === targetNote) {
-              const alreadyClicked = window.clickedNotes.some(n => n.string === ss && n.fret === ff);
-              const alreadyFilled = window.filledNotes.some(n => n.string === ss && n.fret === ff);
-              if (!alreadyClicked && !alreadyFilled) {
-                window.filledNotes.push({string: ss, fret: ff, type: 'normal', color: sourceColor});
-              }
-            }
-          }
+      // If not all are clicked, click all matching notes
+      for (const pos of allMatchingPositions) {
+        const alreadyClicked = window.clickedNotes.some(n => n.string === pos.string && n.fret === pos.fret);
+        if (!alreadyClicked) {
+          window.clickedNotes.push({string: pos.string, fret: pos.fret, type: 'normal', color: sourceColor});
         }
       }
     }
@@ -2518,6 +2742,32 @@
     });
   })();
 
+  // Tritone notation toggle (4+ vs 5-)
+  (function initTritoneToggle() {
+    const tritoneAugRadio = document.getElementById('use-tritone-aug');
+    const tritoneDimRadio = document.getElementById('use-tritone-dim');
+    if (!tritoneAugRadio || !tritoneDimRadio) return;
+
+    // Force 4+ on page load
+    tritoneAugRadio.checked = true;
+    tritoneDimRadio.checked = false;
+    window.useTritoneAugmented = true;
+
+    tritoneAugRadio.addEventListener('change', () => {
+      if (tritoneAugRadio.checked) {
+        window.useTritoneAugmented = true;
+        updateFretboard();
+      }
+    });
+
+    tritoneDimRadio.addEventListener('change', () => {
+      if (tritoneDimRadio.checked) {
+        window.useTritoneAugmented = false;
+        updateFretboard();
+      }
+    });
+  })();
+
   // Keyboard shortcuts
   (function initKeyboardShortcuts() {
     // Track mouse position globally
@@ -2585,6 +2835,25 @@
           valueDisplay.textContent = `${newValue.toFixed(1)}x`;
           updateFretboard();
         }
+      }
+    });
+  })();
+
+  // Help panel toggle
+  (function initHelpPanel() {
+    const helpButton = document.getElementById('help-button');
+    const helpPanel = document.getElementById('help-panel');
+    if (!helpButton || !helpPanel) return;
+    
+    helpButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      helpPanel.classList.toggle('visible');
+    });
+    
+    // Close help panel when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!helpPanel.contains(e.target) && !helpButton.contains(e.target)) {
+        helpPanel.classList.remove('visible');
       }
     });
   })();
@@ -2761,6 +3030,10 @@ document.getElementById("export-png").addEventListener("click", () => {
   const fretboard = document.getElementById("fretboard");
   const isPiano = fretboard && fretboard.classList.contains('piano');
 
+  // Get selected quality
+  const qualitySelect = document.getElementById('png-quality');
+  const pixelRatio = qualitySelect ? parseInt(qualitySelect.value) : 2;
+
   // For piano, hide scrollbar and adjust to show visible portion
   let originalOverflow = null;
   let pianoContainer = null;
@@ -2787,7 +3060,7 @@ document.getElementById("export-png").addEventListener("click", () => {
     backgroundColor: "#ffffff",
     width,
     height,
-    pixelRatio: 2,
+    pixelRatio: pixelRatio,
     cacheBust: true,
     style: {
       margin: "0",
