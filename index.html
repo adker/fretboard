@@ -626,53 +626,137 @@
 
 
 <div style="margin-top: 30px; background: white; padding: 24px; border-radius: var(--border-radius); box-shadow: var(--shadow-lg);">
-  <div class="controls-container" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
-    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
-      <label for="instrument-select" style="font-weight: 600; color: #374151;">Instrument:</label>
-      <select id="instrument-select" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; background: white;">
-        <option value="guitar">Guitar (6 strings)</option>
-        <option value="ukulele">Ukulele (4 strings)</option>
-        <option value="bass">Bass (4 strings)</option>
-        <option value="piano">Piano (keyboard)</option>
-      </select>
-    </div>
-    <div style="display: flex; align-items: center; gap: 8px; padding: 4px 16px;">
-      <input type="checkbox" id="keep-notes" />
-      <label for="keep-notes" style="font-weight: 500; color: #374151; cursor: pointer;">Keep notes when changing instrument</label>
-    </div>
-    <div>
-      <button id="clear">Clear</button>
-      <button id="save-diagram">Save diagram</button>
-      <button id="load-diagram">Load diagram</button>
-      <input type="file" id="load-file-input" accept=".json" style="display: none;">
-      <button id="export-png">Exporter PNG</button>
-      <button id="export-svg">Exporter SVG</button>
-    </div>
-    <div class="fill-buttons">
-      <button id="fill-toggle">Fill / Unfill all (f)</button>
-      <button id="fill-grey-toggle" class="grey-btn">Fill / Unfill grey (g)</button>
-      <button id="fill-selected-toggle">Fill / Unfill selected (s)</button>
-    </div>
-    <div class="color-palette" aria-label="Color palette">
-      <label style="font-weight: 600; color: #374151;">Next note color (c):</label>
-      <div class="color-palette-swatches">
-        <div class="color-swatch selected" data-color="color-1" style="background: linear-gradient(180deg,#7a6cff,#5a49e6)"></div>
-        <div class="color-swatch" data-color="color-2" style="background: linear-gradient(180deg,#ff6b6b,#e04444)"></div>
-        <div class="color-swatch" data-color="color-3" style="background: linear-gradient(180deg,#6bff9e,#2fc86d)"></div>
-        <div class="color-swatch" data-color="color-4" style="background: linear-gradient(180deg,#ffd36b,#ffb84d)"></div>
-        <div class="color-swatch" data-color="color-5" style="background: linear-gradient(180deg,#6bc8ff,#3da8ff)"></div>
-        <div class="color-swatch" data-color="color-6" style="background: linear-gradient(180deg,#111111,#000000)"></div>
+  <div class="controls-container" style="display: flex; align-items: flex-start; gap: 24px; flex-wrap: wrap;">
+    <!-- First Row: Instrument and Basic Controls -->
+    <div style="display: flex; flex-direction: column; gap: 12px; min-width: 100%;">
+      <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
+          <label for="instrument-select" style="font-weight: 600; color: #374151;">Instrument:</label>
+          <select id="instrument-select" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; background: white;">
+            <option value="guitar">Guitar (6 strings)</option>
+            <option value="ukulele">Ukulele (4 strings)</option>
+            <option value="bass">Bass (4 strings)</option>
+            <option value="piano">Piano (keyboard)</option>
+          </select>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="keep-notes" />
+          <label for="keep-notes" style="font-weight: 500; color: #374151; cursor: pointer;">Keep notes when changing instrument</label>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
+          <label for="left-end" style="font-weight: 600; color: #374151;">Left end:</label>
+          <input type="number" id="left-end" min="0" max="12" value="0" style="width: 70px; padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; text-align: center; font-family: inherit;">
+          <label for="right-end" style="font-weight: 600; color: #374151;">Right end:</label>
+          <input type="number" id="right-end" min="0" max="12" value="12" style="width: 70px; padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; text-align: center; font-family: inherit;">
+        </div>
       </div>
     </div>
+
+    <!-- Second Row: Display Chord and Display Scale side by side -->
+    <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%;">
+      <!-- Display Chord -->
+      <div style="flex: 1; min-width: 400px; display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; background: #f9fafb; border-radius: var(--border-radius); box-shadow: var(--shadow-sm);">
+        <label style="font-weight: 600; color: #374151; font-size: 16px;">Display Chord:</label>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="chord-root" style="font-weight: 500; color: #374151;">Root:</label>
+            <select id="chord-root" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; background: white; width: 100px;">
+              <option value="0">C</option>
+              <option value="1">C#/Db</option>
+              <option value="2">D</option>
+              <option value="3">D#/Eb</option>
+              <option value="4">E</option>
+              <option value="5">F</option>
+              <option value="6">F#/Gb</option>
+              <option value="7">G</option>
+              <option value="8">G#/Ab</option>
+              <option value="9">A</option>
+              <option value="10">A#/Bb</option>
+              <option value="11">B</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="chord-type" style="font-weight: 500; color: #374151;">Type:</label>
+            <select id="chord-type" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; background: white; width: 150px;">
+              <option value="M">Major (M)</option>
+              <option value="m">Minor (m)</option>
+              <option value="Maj7">Maj7 / △</option>
+              <option value="m7">m7</option>
+              <option value="7">7</option>
+              <option value="m7b5">m7b5 / ø</option>
+              <option value="dim">dim / °</option>
+              <option value="m6">m6</option>
+              <option value="6">6</option>
+              <option value="7#11">7#11</option>
+              <option value="Maj7#11">Maj7#11 / lydian</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button id="chord-clear-show" style="background: var(--primary-color); color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">Clear and Show</button>
+          <button id="chord-show-top" style="background: var(--primary-color); color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">Show on Top</button>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151; font-size: 14px;">
+            <input type="radio" name="chord-color-mode" id="chord-current-color" value="current" checked style="width: 16px; height: 16px; cursor: pointer;">
+            Current color
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151; font-size: 14px;">
+            <input type="radio" name="chord-color-mode" id="chord-color-function" value="function" style="width: 16px; height: 16px; cursor: pointer;">
+            Color by function
+          </label>
+        </div>
+      </div>
+
+      <!-- Display Scale -->
+      <div style="flex: 1; min-width: 400px; display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; background: #f9fafb; border-radius: var(--border-radius); box-shadow: var(--shadow-sm);">
+        <label style="font-weight: 600; color: #374151; font-size: 16px;">Display Scale:</label>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="scale-root" style="font-weight: 500; color: #374151;">Root:</label>
+            <select id="scale-root" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; background: white; width: 180px;">
+              <option value="0">C major / A minor</option>
+              <option value="1">C#/Db major / A#/Bb minor</option>
+              <option value="2">D major / B minor</option>
+              <option value="3">D#/Eb major / C minor</option>
+              <option value="4">E major / C#/Db minor</option>
+              <option value="5">F major / D minor</option>
+              <option value="6">F#/Gb major / D#/Eb minor</option>
+              <option value="7">G major / E minor</option>
+              <option value="8">G#/Ab major / F minor</option>
+              <option value="9">A major / F#/Gb minor</option>
+              <option value="10">A#/Bb major / G minor</option>
+              <option value="11">B major / G#/Ab minor</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button id="scale-clear-show" style="background: var(--primary-color); color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">Clear and Show</button>
+          <button id="scale-show-top" style="background: var(--primary-color); color: white; padding: 6px 12px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">Show on Top</button>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151; font-size: 14px;">
+            <input type="radio" name="scale-color-mode" id="scale-current-color" value="current" checked style="width: 16px; height: 16px; cursor: pointer;">
+            Current color
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151; font-size: 14px;">
+            <input type="radio" name="scale-color-mode" id="scale-color-function" value="function" style="width: 16px; height: 16px; cursor: pointer;">
+            Color by function
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Third Row: Show Notes and other controls -->
     <div style="display: flex; flex-direction: column; gap: 8px; padding: 8px 12px; background: white; border-radius: var(--border-radius); box-shadow: var(--shadow-md);">
       <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; color: #374151;">
         <input type="checkbox" id="show-notes" style="width: 18px; height: 18px; cursor: pointer;">
-        Show notes
+        Note labels
       </label>
       <div style="display: flex; gap: 16px; margin-left: 26px;">
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-mode" id="display-notes" value="notes" checked style="width: 16px; height: 16px; cursor: pointer;">
-          Notes
+          Note name
         </label>
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-mode" id="display-function" value="function" style="width: 16px; height: 16px; cursor: pointer;">
@@ -683,6 +767,10 @@
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-scope" id="display-selected" value="selected" checked style="width: 16px; height: 16px; cursor: pointer;">
           Clicked only
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
+          <input type="radio" name="display-scope" id="display-chord" value="chord" style="width: 16px; height: 16px; cursor: pointer;">
+          Chord only
         </label>
         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; color: #374151;">
           <input type="radio" name="display-scope" id="display-all" value="all" style="width: 16px; height: 16px; cursor: pointer;">
@@ -710,12 +798,34 @@
         </label>
       </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #f9fafb; border-radius: var(--border-radius);">
-      <label for="left-end" style="font-weight: 600; color: #374151;">Left end:</label>
-      <input type="number" id="left-end" min="0" max="12" value="0" style="width: 70px; padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; text-align: center; font-family: inherit;">
-      <label for="right-end" style="font-weight: 600; color: #374151;">Right end:</label>
-      <input type="number" id="right-end" min="0" max="12" value="12" style="width: 70px; padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; text-align: center; font-family: inherit;">
+
+    <div class="color-palette" aria-label="Color palette">
+      <label style="font-weight: 600; color: #374151;">Next note color (c):</label>
+      <div class="color-palette-swatches">
+        <div class="color-swatch selected" data-color="color-1" style="background: linear-gradient(180deg,#7a6cff,#5a49e6)"></div>
+        <div class="color-swatch" data-color="color-2" style="background: linear-gradient(180deg,#ff6b6b,#e04444)"></div>
+        <div class="color-swatch" data-color="color-3" style="background: linear-gradient(180deg,#6bff9e,#2fc86d)"></div>
+        <div class="color-swatch" data-color="color-4" style="background: linear-gradient(180deg,#ffd36b,#ffb84d)"></div>
+        <div class="color-swatch" data-color="color-5" style="background: linear-gradient(180deg,#6bc8ff,#3da8ff)"></div>
+        <div class="color-swatch" data-color="color-6" style="background: linear-gradient(180deg,#111111,#000000)"></div>
+      </div>
     </div>
+
+    <div class="fill-buttons">
+      <button id="fill-toggle">Fill / Unfill all (f)</button>
+      <button id="fill-grey-toggle" class="grey-btn">Fill / Unfill grey (g)</button>
+      <button id="fill-selected-toggle">Fill / Unfill selected (s)</button>
+    </div>
+
+    <div>
+      <button id="clear">Clear</button>
+      <button id="save-diagram">Save diagram</button>
+      <button id="load-diagram">Load diagram</button>
+      <input type="file" id="load-file-input" accept=".json" style="display: none;">
+      <button id="export-png">Exporter PNG</button>
+      <button id="export-svg">Exporter SVG</button>
+    </div>
+
     <div style="display: flex; align-items: center; gap: 12px;">
       <label style="font-weight: 600; color: #374151;">File name:</label>
       <input type="text" id="title" value="diagram" autocomplete="off" style="padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 15px; font-weight: 600; font-family: inherit; min-width: 200px;">
@@ -942,6 +1052,63 @@
     window.filledNotes = newFilled;
     window.greyNotes = newGrey;
     
+    // Convert lastChordNotes and lastScaleNotes to new instrument
+    if (window.lastChordNotes.length > 0) {
+      const chordPitches = new Set();
+      window.lastChordNotes.forEach(note => {
+        const absolutePitch = getAbsolutePitch(note.string, note.fret, oldConfig);
+        chordPitches.add(absolutePitch);
+      });
+      
+      const newChordNotes = [];
+      if (newConfig.type === 'keyboard') {
+        for (let key = 0; key < newConfig.keys; key++) {
+          const absolutePitch = getAbsolutePitch(key, 0, newConfig);
+          if (chordPitches.has(absolutePitch)) {
+            newChordNotes.push({string: key, fret: 0});
+          }
+        }
+      } else {
+        for (let string = 0; string < newConfig.strings; string++) {
+          for (let fret = 0; fret <= 12; fret++) {
+            const absolutePitch = getAbsolutePitch(string, fret, newConfig);
+            if (chordPitches.has(absolutePitch)) {
+              newChordNotes.push({string: string, fret: fret});
+            }
+          }
+        }
+      }
+      window.lastChordNotes = newChordNotes;
+    }
+    
+    if (window.lastScaleNotes.length > 0) {
+      const scalePitches = new Set();
+      window.lastScaleNotes.forEach(note => {
+        const absolutePitch = getAbsolutePitch(note.string, note.fret, oldConfig);
+        scalePitches.add(absolutePitch);
+      });
+      
+      const newScaleNotes = [];
+      if (newConfig.type === 'keyboard') {
+        for (let key = 0; key < newConfig.keys; key++) {
+          const absolutePitch = getAbsolutePitch(key, 0, newConfig);
+          if (scalePitches.has(absolutePitch)) {
+            newScaleNotes.push({string: key, fret: 0});
+          }
+        }
+      } else {
+        for (let string = 0; string < newConfig.strings; string++) {
+          for (let fret = 0; fret <= 12; fret++) {
+            const absolutePitch = getAbsolutePitch(string, fret, newConfig);
+            if (scalePitches.has(absolutePitch)) {
+              newScaleNotes.push({string: string, fret: fret});
+            }
+          }
+        }
+      }
+      window.lastScaleNotes = newScaleNotes;
+    }
+    
     console.log('After conversion:', newClicked.length, 'clicked,', newFilled.length, 'filled');
     console.log('Converted notes:', newClicked);
   }
@@ -980,9 +1147,261 @@
     return INTERVAL_NAMES[interval];
   }
 
+  // Chord definitions: intervals from root (in semitones)
+  const CHORD_INTERVALS = {
+    'M': [0, 4, 7],           // Major: Root, Major 3rd, Perfect 5th
+    'm': [0, 3, 7],           // Minor: Root, Minor 3rd, Perfect 5th
+    'Maj7': [0, 4, 7, 11],    // Major 7th: Root, Major 3rd, Perfect 5th, Major 7th
+    'm7': [0, 3, 7, 10],      // Minor 7th: Root, Minor 3rd, Perfect 5th, Minor 7th
+    '7': [0, 4, 7, 10],       // Dominant 7th: Root, Major 3rd, Perfect 5th, Minor 7th
+    'm7b5': [0, 3, 6, 10],    // Half-diminished: Root, Minor 3rd, Diminished 5th, Minor 7th
+    'dim': [0, 3, 6],         // Diminished: Root, Minor 3rd, Diminished 5th
+    'm6': [0, 3, 7, 9],       // Minor 6th: Root, Minor 3rd, Perfect 5th, Major 6th
+    '6': [0, 4, 7, 9],        // Major 6th: Root, Major 3rd, Perfect 5th, Major 6th
+    '7#11': [0, 4, 6, 7, 10], // Dominant 7th #11: Root, Major 3rd, #11, Perfect 5th, Minor 7th
+    'Maj7#11': [0, 4, 6, 7, 11] // Major 7th #11 (Lydian): Root, Major 3rd, #11, Perfect 5th, Major 7th
+  };
+
+  // Color scheme for chord functions
+  const CHORD_FUNCTION_COLORS = {
+    0: 'color-6',  // Root (black)
+    3: 'color-2',  // Minor 3rd (red)
+    4: 'color-2',  // Major 3rd (red)
+    6: 'color-4',  // Diminished 5th / #11 (orange)
+    7: 'color-3',  // Perfect 5th (green)
+    9: 'color-1',  // Major 6th (purple)
+    10: 'color-5', // Minor 7th (blue)
+    11: 'color-5'  // Major 7th (blue)
+  };
+
+  // Scale definitions: intervals from root (in semitones)
+  const SCALE_INTERVALS = {
+    'major': [0, 2, 4, 5, 7, 9, 11]  // Major scale: Root, 2nd, 3rd, 4th, 5th, 6th, 7th
+  };
+
+  // Color scheme for scale functions
+  const SCALE_FUNCTION_COLORS = {
+    0: 'color-6',  // Root (1) - black
+    2: 'color-4',  // 2nd - orange
+    4: 'color-2',  // 3rd - red
+    5: 'color-1',  // 4th - purple
+    7: 'color-3',  // 5th - green
+    9: 'color-1',  // 6th - purple
+    11: 'color-5'  // 7th - blue
+  };
+
+  // Generate chord notes based on root and type
+  function getChordNotes(rootNote, chordType) {
+    const intervals = CHORD_INTERVALS[chordType];
+    if (!intervals) return [];
+    
+    // Convert root from 0-11 to 1-12 note system
+    const root = rootNote + 1; // rootNote is 0-11, need 1-12
+    const chordNotes = intervals.map(interval => {
+      return ((root - 1 + interval) % 12) + 1; // Calculate note value in 1-12 system
+    });
+    
+    return chordNotes;
+  }
+
+  // Display chord notes on the fretboard
+  function displayChord(rootNote, chordType, clearFirst, useFunction) {
+    if (clearFirst) {
+      window.clickedNotes = [];
+      window.filledNotes = [];
+      window.greyNotes = [];
+      clearSelectedNoteDOM();
+    }
+    
+    const chordNotes = getChordNotes(rootNote, chordType);
+    const intervals = CHORD_INTERVALS[chordType];
+    const config = getCurrentConfig();
+    
+    // Clear previous chord memory
+    window.lastChordNotes = [];
+    
+    // Create a map from note value to its interval for coloring
+    const noteToInterval = {};
+    const root = rootNote + 1;
+    intervals.forEach(interval => {
+      const noteValue = ((root - 1 + interval) % 12) + 1;
+      noteToInterval[noteValue] = interval;
+    });
+    
+    if (config.type === 'keyboard') {
+      // Add notes to piano
+      for (let key = 0; key < config.keys; key++) {
+        const noteValue = getNote(key, 0);
+        if (chordNotes.includes(noteValue)) {
+          // Remove existing note at this position if any
+          window.clickedNotes = window.clickedNotes.filter(n => !(n.string === key && n.fret === 0));
+          window.filledNotes = window.filledNotes.filter(n => !(n.string === key && n.fret === 0));
+          
+          // Add the chord note
+          const interval = noteToInterval[noteValue];
+          const color = useFunction ? CHORD_FUNCTION_COLORS[interval] : window.currentNoteColor;
+          window.clickedNotes.push({string: key, fret: 0, type: 'normal', color: color});
+          
+          // Remember this as a chord note
+          window.lastChordNotes.push({string: key, fret: 0});
+        }
+      }
+    } else {
+      // Add notes to fretboard
+      for (let string = 0; string < config.strings; string++) {
+        for (let fret = 0; fret <= 12; fret++) {
+          const noteValue = getNote(string, fret);
+          if (chordNotes.includes(noteValue)) {
+            // Remove existing note at this position if any
+            window.clickedNotes = window.clickedNotes.filter(n => !(n.string === string && n.fret === fret));
+            window.filledNotes = window.filledNotes.filter(n => !(n.string === string && n.fret === fret));
+            
+            // Add the chord note
+            const interval = noteToInterval[noteValue];
+            const color = useFunction ? CHORD_FUNCTION_COLORS[interval] : window.currentNoteColor;
+            window.clickedNotes.push({string: string, fret: fret, type: 'normal', color: color});
+            
+            // Remember this as a chord note
+            window.lastChordNotes.push({string: string, fret: fret});
+          }
+        }
+      }
+    }
+    
+    // If using function coloring, enable "Show notes" with function display for chord notes only
+    if (useFunction) {
+      window.showNotes = true;
+      window.showFunction = true;
+      window.showAll = false; // Show only clicked notes (which are the chord notes)
+      
+      // Update UI checkboxes
+      const showNotesCheckbox = document.getElementById('show-notes');
+      const displayFunctionRadio = document.getElementById('display-function');
+      const displaySelectedRadio = document.getElementById('display-selected');
+      if (showNotesCheckbox) showNotesCheckbox.checked = true;
+      if (displayFunctionRadio) displayFunctionRadio.checked = true;
+      if (displaySelectedRadio) displaySelectedRadio.checked = true;
+      
+      // Select the root note for function display - find first root note that was added to clickedNotes
+      const rootNoteValue = rootNote + 1;
+      const rootInClicked = window.clickedNotes.find(n => getNote(n.string, n.fret) === rootNoteValue);
+      if (rootInClicked) {
+        window.selectedNoteKey = noteKey(rootInClicked.string, rootInClicked.fret);
+      }
+    }
+    
+    updateFretboard();
+  }
+
+  // Display scale notes on the fretboard
+  function displayScale(rootNote, clearFirst, useFunction) {
+    if (clearFirst) {
+      window.clickedNotes = [];
+      window.filledNotes = [];
+      window.greyNotes = [];
+      clearSelectedNoteDOM();
+    }
+    
+    const scaleNotes = getScaleNotes(rootNote);
+    const intervals = SCALE_INTERVALS['major'];
+    const config = getCurrentConfig();
+    
+    // Clear previous scale memory
+    window.lastScaleNotes = [];
+    
+    // Create a map from note value to its interval for coloring
+    const noteToInterval = {};
+    const root = rootNote + 1;
+    intervals.forEach(interval => {
+      const noteValue = ((root - 1 + interval) % 12) + 1;
+      noteToInterval[noteValue] = interval;
+    });
+    
+    if (config.type === 'keyboard') {
+      // Add notes to piano
+      for (let key = 0; key < config.keys; key++) {
+        const noteValue = getNote(key, 0);
+        if (scaleNotes.includes(noteValue)) {
+          // Remove existing note at this position if any
+          window.clickedNotes = window.clickedNotes.filter(n => !(n.string === key && n.fret === 0));
+          window.filledNotes = window.filledNotes.filter(n => !(n.string === key && n.fret === 0));
+          
+          // Add the scale note
+          const interval = noteToInterval[noteValue];
+          const color = useFunction ? SCALE_FUNCTION_COLORS[interval] : window.currentNoteColor;
+          window.clickedNotes.push({string: key, fret: 0, type: 'normal', color: color});
+          
+          // Remember this as a scale note
+          window.lastScaleNotes.push({string: key, fret: 0});
+        }
+      }
+    } else {
+      // Add notes to fretboard
+      for (let string = 0; string < config.strings; string++) {
+        for (let fret = 0; fret <= 12; fret++) {
+          const noteValue = getNote(string, fret);
+          if (scaleNotes.includes(noteValue)) {
+            // Remove existing note at this position if any
+            window.clickedNotes = window.clickedNotes.filter(n => !(n.string === string && n.fret === fret));
+            window.filledNotes = window.filledNotes.filter(n => !(n.string === string && n.fret === fret));
+            
+            // Add the scale note
+            const interval = noteToInterval[noteValue];
+            const color = useFunction ? SCALE_FUNCTION_COLORS[interval] : window.currentNoteColor;
+            window.clickedNotes.push({string: string, fret: fret, type: 'normal', color: color});
+            
+            // Remember this as a scale note
+            window.lastScaleNotes.push({string: string, fret: fret});
+          }
+        }
+      }
+    }
+    
+    // If using function coloring, enable "Show notes" with function display for scale notes only
+    if (useFunction) {
+      window.showNotes = true;
+      window.showFunction = true;
+      window.showAll = false;
+      
+      // Update UI checkboxes
+      const showNotesCheckbox = document.getElementById('show-notes');
+      const displayFunctionRadio = document.getElementById('display-function');
+      const displaySelectedRadio = document.getElementById('display-selected');
+      if (showNotesCheckbox) showNotesCheckbox.checked = true;
+      if (displayFunctionRadio) displayFunctionRadio.checked = true;
+      if (displaySelectedRadio) displaySelectedRadio.checked = true;
+      
+      // Select the root note for function display - find first root note that was added to clickedNotes
+      const rootNoteValue = rootNote + 1;
+      const rootInClicked = window.clickedNotes.find(n => getNote(n.string, n.fret) === rootNoteValue);
+      if (rootInClicked) {
+        window.selectedNoteKey = noteKey(rootInClicked.string, rootInClicked.fret);
+      }
+    }
+    
+    updateFretboard();
+  }
+
+  // Generate scale notes based on root
+  function getScaleNotes(rootNote) {
+    const intervals = SCALE_INTERVALS['major'];
+    if (!intervals) return [];
+    
+    // Convert root from 0-11 to 1-12 note system
+    const root = rootNote + 1;
+    const scaleNotes = intervals.map(interval => {
+      return ((root - 1 + interval) % 12) + 1;
+    });
+    
+    return scaleNotes;
+  }
+
   window.showNotes = false;
   window.showFunction = false; // false = notes, true = function (intervals)
   window.showAll = false; // false = selected only, true = all
+  window.showChordOnly = false; // false = show clicked/all, true = show only chord notes
+  window.lastChordNotes = []; // Store the last generated chord notes (format: {string, fret})
+  window.lastScaleNotes = []; // Store the last generated scale notes (format: {string, fret})
 
   function getFretWidth() {
     const baseWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fret-width'));
@@ -1208,14 +1627,20 @@
       
       // Display note name if show notes is enabled
       if (window.showNotes) {
-        if (window.showFunction && window.selectedNoteKey) {
-          const parts = window.selectedNoteKey.split('-');
-          const selString = parseInt(parts[0].substring(1));
-          const selFret = parseInt(parts[1].substring(1));
-          const refNote = getNote(selString, selFret);
-          note.textContent = getInterval(refNote, noteNum);
-        } else {
-          note.textContent = getNoteName(noteNum);
+        // When "Chord only" is active (but not "All"), only show text for notes that are in lastChordNotes
+        const isInChord = window.lastChordNotes.some(cn => cn.string === noteData.string && cn.fret === 0);
+        const shouldShowText = window.showAll || !window.showChordOnly || isInChord;
+        
+        if (shouldShowText) {
+          if (window.showFunction && window.selectedNoteKey) {
+            const parts = window.selectedNoteKey.split('-');
+            const selString = parseInt(parts[0].substring(1));
+            const selFret = parseInt(parts[1].substring(1));
+            const refNote = getNote(selString, selFret);
+            note.textContent = getInterval(refNote, noteNum);
+          } else {
+            note.textContent = getNoteName(noteNum);
+          }
         }
       }
       
@@ -1289,7 +1714,17 @@
         note.className = 'note all-notes-display';
         note.dataset.string = keyIndex;
         note.dataset.fret = 0;
-        note.textContent = getNoteName(noteNum);
+        
+        // Display note name or interval
+        if (window.showFunction && window.selectedNoteKey) {
+          const parts = window.selectedNoteKey.split('-');
+          const selString = parseInt(parts[0].substring(1));
+          const selFret = parseInt(parts[1].substring(1));
+          const refNote = getNote(selString, selFret);
+          note.textContent = getInterval(refNote, noteNum);
+        } else {
+          note.textContent = getNoteName(noteNum);
+        }
         
         note.style.position = 'absolute';
         note.style.bottom = '10px';
@@ -1300,6 +1735,9 @@
         keyEl.appendChild(note);
       });
     }
+
+    // Note: "Chord only" mode does not display white discs for unclicked chord notes
+    // Only the actually clicked/filled chord notes are shown
   }
 
   function updateFretboard() {
@@ -1414,16 +1852,22 @@
 
         // Display note name or interval if enabled
         if (window.showNotes) {
-          const noteNum = getNote(string, fret);
-          if (window.showFunction && window.selectedNoteKey) {
-            // Show interval relative to selected note
-            const selParts = window.selectedNoteKey.split('-');
-            const selString = parseInt(selParts[0].slice(1), 10);
-            const selFret = parseInt(selParts[1].slice(1), 10);
-            const rootNote = getNote(selString, selFret);
-            note.textContent = getInterval(rootNote, noteNum);
-          } else {
-            note.textContent = getNoteName(noteNum);
+          // When "Chord only" is active (but not "All"), only show text for notes that are in lastChordNotes
+          const isInChord = window.lastChordNotes.some(cn => cn.string === string && cn.fret === fret);
+          const shouldShowText = window.showAll || !window.showChordOnly || isInChord;
+          
+          if (shouldShowText) {
+            const noteNum = getNote(string, fret);
+            if (window.showFunction && window.selectedNoteKey) {
+              // Show interval relative to selected note
+              const selParts = window.selectedNoteKey.split('-');
+              const selString = parseInt(selParts[0].slice(1), 10);
+              const selFret = parseInt(selParts[1].slice(1), 10);
+              const rootNote = getNote(selString, selFret);
+              note.textContent = getInterval(rootNote, noteNum);
+            } else {
+              note.textContent = getNoteName(noteNum);
+            }
           }
         }
 
@@ -1564,6 +2008,9 @@
         }
       }
     }
+
+    // Note: "Chord only" mode does not display white discs for unclicked chord notes
+    // Only the actually clicked/filled chord notes are shown
 
     // Add fret number label if not showing open
     if (!showOpen) {
@@ -1740,8 +2187,38 @@
     window.clickedNotes = [];
     window.filledNotes = [];
     window.greyNotes = [];
+    window.lastChordNotes = []; // Clear chord memory
+    window.lastScaleNotes = []; // Clear scale memory
     if (typeof clearSelectedNoteDOM === 'function') clearSelectedNoteDOM();
     updateFretboard();
+  });
+
+  // Chord display buttons
+  document.getElementById('chord-clear-show').addEventListener('click', () => {
+    const rootNote = parseInt(document.getElementById('chord-root').value);
+    const chordType = document.getElementById('chord-type').value;
+    const useFunction = document.getElementById('chord-color-function').checked;
+    displayChord(rootNote, chordType, true, useFunction);
+  });
+
+  document.getElementById('chord-show-top').addEventListener('click', () => {
+    const rootNote = parseInt(document.getElementById('chord-root').value);
+    const chordType = document.getElementById('chord-type').value;
+    const useFunction = document.getElementById('chord-color-function').checked;
+    displayChord(rootNote, chordType, false, useFunction);
+  });
+
+  // Scale display buttons
+  document.getElementById('scale-clear-show').addEventListener('click', () => {
+    const rootNote = parseInt(document.getElementById('scale-root').value);
+    const useFunction = document.getElementById('scale-color-function').checked;
+    displayScale(rootNote, true, useFunction);
+  });
+
+  document.getElementById('scale-show-top').addEventListener('click', () => {
+    const rootNote = parseInt(document.getElementById('scale-root').value);
+    const useFunction = document.getElementById('scale-color-function').checked;
+    displayScale(rootNote, false, useFunction);
   });
 
   document.getElementById('fill-selected-toggle').addEventListener('click', () => {
@@ -1840,6 +2317,7 @@
     window.showNotes = false;
     window.showFunction = false;
     window.showAll = false;
+    window.showChordOnly = false;
 
     showNotesCheckbox.addEventListener('change', () => {
       window.showNotes = showNotesCheckbox.checked;
@@ -1869,6 +2347,7 @@
     displaySelectedRadio.addEventListener('change', () => {
       if (displaySelectedRadio.checked) {
         window.showAll = false;
+        window.showChordOnly = false;
         updateFretboard();
       }
     });
@@ -1876,9 +2355,26 @@
     displayAllRadio.addEventListener('change', () => {
       if (displayAllRadio.checked) {
         window.showAll = true;
+        window.showChordOnly = false;
         updateFretboard();
       }
     });
+
+    const displayChordRadio = document.getElementById('display-chord');
+    if (displayChordRadio) {
+      displayChordRadio.addEventListener('change', () => {
+        if (displayChordRadio.checked) {
+          if (window.lastChordNotes.length === 0) {
+            alert('No chord generated yet. Use "Display Chord" first.');
+            displaySelectedRadio.checked = true;
+            return;
+          }
+          window.showAll = false;
+          window.showChordOnly = true;
+          updateFretboard();
+        }
+      });
+    }
   })();
 
   // Instrument selector
