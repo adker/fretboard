@@ -685,6 +685,12 @@
       .instructions-box {
         font-size: 14px;
       }
+
+      /* Display chord and scale containers */
+      .display-chord-container,
+      .display-scale-container {
+        min-width: 100% !important;
+      }
     }
 
     @media (max-width: 480px) {
@@ -768,7 +774,7 @@
     <!-- Second Row: Display Chord and Display Scale side by side -->
     <div style="display: flex; gap: 24px; flex-wrap: wrap; width: 100%;">
       <!-- Display Chord -->
-      <div style="flex: 1; min-width: 400px; display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; background: #f9fafb; border-radius: var(--border-radius); box-shadow: var(--shadow-sm);">
+      <div class="display-chord-container" style="flex: 1; min-width: 400px; display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; background: #f9fafb; border-radius: var(--border-radius); box-shadow: var(--shadow-sm);">
         <label style="font-weight: 600; color: #374151; font-size: 16px;">Display Chord:</label>
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -823,7 +829,7 @@
       </div>
 
       <!-- Display Scale -->
-      <div style="flex: 1; min-width: 400px; display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; background: #f9fafb; border-radius: var(--border-radius); box-shadow: var(--shadow-sm);">
+      <div class="display-scale-container" style="flex: 1; min-width: 400px; display: flex; flex-direction: column; gap: 12px; padding: 12px 16px; background: #f9fafb; border-radius: var(--border-radius); box-shadow: var(--shadow-sm);">
         <label style="font-weight: 600; color: #374151; font-size: 16px;">Display Scale:</label>
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 8px;">
